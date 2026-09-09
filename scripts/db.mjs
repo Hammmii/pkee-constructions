@@ -2,8 +2,11 @@
 /**
  * Project-local Postgres for development — no system install required.
  * Data lives in ./pgdata (gitignored); binaries ship in
- * @embedded-postgres/darwin-arm64. We drive pg_ctl directly (the
+ * @embedded-postgres/<platform>. We drive pg_ctl directly (the
  * embedded-postgres JS start() hangs on Node 25).
+ *
+ * Auth: password is supplied via the PGPASSWORD env var (set it in your
+ * untracked .env). Never hard-code or commit credentials.
  *
  * Usage: node scripts/db.mjs start | stop | status
  */
@@ -24,11 +27,12 @@ const binDir = path.join(
 );
 const pgCtl = path.join(binDir, "pg_ctl");
 const port = process.env.PGPORT || "5432";
+const password = process.env.PGPASSWORD;
 
 const run = (args, opts = {}) =>
   spawnSync(pgCtl, args, {
     stdio: "inherit",
-    env: { ...process.env, PGPASSWORD: "postgres" },
+    env: { ...process.env, ...(password ? { PGPASSWORD: password } : {}) },
     ...opts,
   });
 
@@ -50,32 +54,43 @@ switch (command) {
       break;
     }
     if (!fs.existsSync(dataDir)) {
+      if (!password) {
+        console.error("PGPASSWORD env var is required to initialise the cluster.");
+        process.exit(1);
+      }
       execFileSync(
         path.join(binDir, "initdb"),
         ["-D", dataDir, "-U", "postgres", "--pwfile=/dev/stdin"],
         {
           stdio: ["pipe", "inherit", "inherit"],
-          input: "postgres\n",
+          input: `${password}\n`,
         },
       );
       console.log("Cluster initialised.");
     }
     run(["-D", dataDir, "-l", path.join(dataDir, "server.log"), "-o", `-p ${port}`, "-w", "start"]);
-    // ensure the app database exists
-    try {
-      execFileSync(
-        path.join(binDir, "createdb"),
-        ["-h", "127.0.0.1", "-p", port, "-U", "postgres", "pkee"],
-        {
-          stdio: "pipe",
-          env: { ...process.env, PGPASSWORD: "postgres" },
-        },
-      );
-    } catch {
-      /* database already exists */
+    // ensure the app database exists (pg client ships with @payloadcms/db-postgres)
+    if (password) {
+      try {
+        const { Client } = await import("pg");
+        const client = new Client({
+          host: "127.0.0.1",
+          port: Number(port),
+          user: "postgres",
+          password,
+        });
+        await client.connect();
+        await client.query("CREATE DATABASE pkee").catch(() => {});
+        await client.end();
+      } catch {
+        /* database already exists or pg unavailable — dev server will surface it */
+      }
     }
     console.log("Postgres ready on 127.0.0.1:%s (data: %s)", port, dataDir);
-    console.log("DATABASE_URL=postgres://127.0.0.1:%s/pkee", port);
+    console.log(
+      "DATABASE_URL=postgres://127.0.0.1:%s/pkee  (credentials via PGPASSWORD env)",
+      port,
+    );
     break;
   }
   case "stop": {

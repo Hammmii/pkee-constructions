@@ -69,6 +69,18 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    'product-categories': ProductCategory;
+    products: Product;
+    solutions: Solution;
+    projects: Project;
+    faqs: Faq;
+    testimonials: Testimonial;
+    pages: Page;
+    quotes: Quote;
+    'dealer-applications': DealerApplication;
+    'sample-requests': SampleRequest;
+    consultations: Consultation;
+    'contact-messages': ContactMessage;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +90,18 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'product-categories': ProductCategoriesSelect<false> | ProductCategoriesSelect<true>;
+    products: ProductsSelect<false> | ProductsSelect<true>;
+    solutions: SolutionsSelect<false> | SolutionsSelect<true>;
+    projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    faqs: FaqsSelect<false> | FaqsSelect<true>;
+    testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
+    quotes: QuotesSelect<false> | QuotesSelect<true>;
+    'dealer-applications': DealerApplicationsSelect<false> | DealerApplicationsSelect<true>;
+    'sample-requests': SampleRequestsSelect<false> | SampleRequestsSelect<true>;
+    consultations: ConsultationsSelect<false> | ConsultationsSelect<true>;
+    'contact-messages': ContactMessagesSelect<false> | ContactMessagesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -195,6 +219,507 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-categories".
+ */
+export interface ProductCategory {
+  id: number;
+  name: string;
+  slug: string;
+  group: 'sheets-panels' | 'stone' | 'walls-backdrops' | 'custom-fabrication' | 'finishing-light';
+  heroImage?: (number | null) | Media;
+  intro?: string | null;
+  benefits?:
+    | {
+        benefit: string;
+        id?: string | null;
+      }[]
+    | null;
+  applications?:
+    | (
+        | 'living-room'
+        | 'kitchen'
+        | 'bathroom'
+        | 'bedroom'
+        | 'office'
+        | 'restaurant'
+        | 'retail'
+        | 'hotel'
+        | 'outdoor'
+        | 'feature-wall'
+        | 'fireplace'
+        | 'prayer-room'
+        | 'ceiling'
+        | 'basement'
+      )[]
+    | null;
+  faqs?: (number | Faq)[] | null;
+  seo?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    ogImage?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs".
+ */
+export interface Faq {
+  id: number;
+  question: string;
+  answer: string;
+  category?:
+    | (
+        | 'pvc-wall-panels'
+        | 'decor-sheets'
+        | 'stone'
+        | 'walls-backdrops'
+        | 'custom-fabrication'
+        | 'finishing-light'
+        | 'shipping-installation'
+        | 'trade-program'
+        | 'general'
+      )
+    | null;
+  /**
+   * e.g. /quote, /trade, /samples
+   */
+  relatedPage?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: number;
+  name: string;
+  slug: string;
+  category: number | ProductCategory;
+  summary?: string | null;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  heroImage: number | Media;
+  gallery?: (number | Media)[] | null;
+  finishes?:
+    | {
+        name: string;
+        /**
+         * Hex colour, e.g. #B08D57
+         */
+        swatch?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  colors?:
+    | {
+        name: string;
+        /**
+         * Hex colour, e.g. #8C5B3F
+         */
+        hex?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  sizes?:
+    | {
+        size: string;
+        id?: string | null;
+      }[]
+    | null;
+  material?: string | null;
+  cuttingMethod?: string | null;
+  thickness?: string | null;
+  properties?:
+    | ('waterproof' | 'fire-resistant' | 'scratch-resistant' | 'eco-friendly' | 'budget-friendly' | 'easy-install')[]
+    | null;
+  applications?:
+    | (
+        | 'living-room'
+        | 'kitchen'
+        | 'bathroom'
+        | 'bedroom'
+        | 'office'
+        | 'restaurant'
+        | 'retail'
+        | 'hotel'
+        | 'outdoor'
+        | 'feature-wall'
+        | 'fireplace'
+        | 'prayer-room'
+        | 'ceiling'
+        | 'basement'
+      )[]
+    | null;
+  indoorOutdoor?: ('both' | 'indoor' | 'outdoor') | null;
+  backlit?: boolean | null;
+  customizable?: boolean | null;
+  relatedProducts?: (number | Product)[] | null;
+  featured?: boolean | null;
+  /**
+   * Checked = some or all media on this document is SEED-PLACEHOLDER; must be replaced before launch (CONTENT-GAPS.md).
+   */
+  placeholderMedia?: boolean | null;
+  seo?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    ogImage?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "solutions".
+ */
+export interface Solution {
+  id: number;
+  name: string;
+  slug: string;
+  heroImage?: (number | null) | Media;
+  intro?: string | null;
+  recommendedProducts?: (number | Product)[] | null;
+  faqs?: (number | Faq)[] | null;
+  seo?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    ogImage?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects".
+ */
+export interface Project {
+  id: number;
+  title: string;
+  slug: string;
+  location?: string | null;
+  type?: ('residential' | 'commercial') | null;
+  room?:
+    | (
+        | 'living-room'
+        | 'kitchen'
+        | 'bathroom'
+        | 'bedroom'
+        | 'office'
+        | 'restaurant'
+        | 'retail'
+        | 'hotel'
+        | 'outdoor'
+        | 'feature-wall'
+        | 'fireplace'
+        | 'prayer-room'
+        | 'basement'
+      )[]
+    | null;
+  productsUsed?: (number | Product)[] | null;
+  materialsUsed?:
+    | {
+        material: string;
+        id?: string | null;
+      }[]
+    | null;
+  beforeImage?: (number | null) | Media;
+  afterImage?: (number | null) | Media;
+  gallery?: (number | Media)[] | null;
+  description?: string | null;
+  completionDate?: string | null;
+  services?:
+    | {
+        service: string;
+        id?: string | null;
+      }[]
+    | null;
+  featured?: boolean | null;
+  seo?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    ogImage?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials".
+ */
+export interface Testimonial {
+  id: number;
+  name: string;
+  rating: number;
+  text: string;
+  project?: (number | null) | Project;
+  product?: (number | null) | Product;
+  location?: string | null;
+  verified?: boolean | null;
+  featured?: boolean | null;
+  image?: (number | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  slug: string;
+  blocks?:
+    | (
+        | {
+            heading: string;
+            subheading?: string | null;
+            image?: (number | null) | Media;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'hero';
+          }
+        | {
+            content?: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            } | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richText';
+          }
+        | {
+            images?: (number | Media)[] | null;
+            columns?: ('2' | '3' | '4') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'imageGrid';
+          }
+        | {
+            stats?:
+              | {
+                  label: string;
+                  value: string;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'statsBand';
+          }
+        | {
+            heading: string;
+            subheading?: string | null;
+            buttonLabel: string;
+            buttonHref: string;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'ctaBand';
+          }
+      )[]
+    | null;
+  seo?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    ogImage?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quotes".
+ */
+export interface Quote {
+  id: number;
+  reference?: string | null;
+  customer: {
+    name: string;
+    email: string;
+    phone?: string | null;
+    preferredContact?: ('email' | 'phone' | 'text' | 'whatsapp') | null;
+    city?: string | null;
+    postalCode?: string | null;
+  };
+  project?: {
+    projectType?: ('residential' | 'commercial') | null;
+    buildType?: ('new-build' | 'renovation') | null;
+    roomType?: string | null;
+    timeline?: ('asap' | '1-3-months' | '3-6-months' | '6-plus-months' | 'researching') | null;
+  };
+  material?: {
+    product?: (number | null) | Product;
+    finish?: string | null;
+    color?: string | null;
+    quantity?: number | null;
+    unit?: ('sqft' | 'sqm' | 'pieces') | null;
+  };
+  dimensions?: {
+    width?: number | null;
+    height?: number | null;
+    floorArea?: number | null;
+    wallCount?: number | null;
+    doorCount?: number | null;
+  };
+  customization?: {
+    designRequirements?: string | null;
+    lighting?: string | null;
+    fabrication?: string | null;
+    installationRequired?: boolean | null;
+    deliveryRequired?: boolean | null;
+  };
+  attachments?: (number | Media)[] | null;
+  status:
+    | 'new'
+    | 'contacted'
+    | 'qualified'
+    | 'site-visit'
+    | 'design'
+    | 'quote-preparing'
+    | 'quote-sent'
+    | 'negotiation'
+    | 'won'
+    | 'lost'
+    | 'archived';
+  assignedTo?: (number | null) | User;
+  notes?:
+    | {
+        note: string;
+        author?: (number | null) | User;
+        date: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Computed at intake; higher = hotter lead.
+   */
+  leadScore?: number | null;
+  source?: string | null;
+  landingPage?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "dealer-applications".
+ */
+export interface DealerApplication {
+  id: number;
+  firstName: string;
+  lastName: string;
+  companyName: string;
+  companyAddress: string;
+  email: string;
+  phone: string;
+  city?: string | null;
+  province?: string | null;
+  postalCode?: string | null;
+  gstNumber?: string | null;
+  businessType: 'retailer' | 'wholesaler' | 'contractor' | 'designer' | 'other';
+  yearsInBusiness?: number | null;
+  annualTurnover?: ('under-250k' | '250k-1m' | '1m-5m' | '5m-plus') | null;
+  otherBrands?: boolean | null;
+  otherBrandNames?: string | null;
+  moreInfo?: string | null;
+  documents?: (number | Media)[] | null;
+  status: 'new' | 'under-review' | 'documents-pending' | 'approved' | 'rejected';
+  territory?: string | null;
+  assignedRep?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sample-requests".
+ */
+export interface SampleRequest {
+  id: number;
+  product: number | Product;
+  color?: string | null;
+  finish?: string | null;
+  quantity?: number | null;
+  contact: {
+    name: string;
+    email: string;
+    phone?: string | null;
+    address?: string | null;
+  };
+  status: 'new' | 'processing' | 'shipped' | 'fulfilled';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consultations".
+ */
+export interface Consultation {
+  id: number;
+  type: 'phone' | 'video' | 'showroom' | 'site-visit';
+  date: string;
+  /**
+   * e.g. 10:30 AM
+   */
+  time: string;
+  projectType?: ('residential' | 'commercial') | null;
+  productInterest?: string | null;
+  contact: {
+    name: string;
+    email: string;
+    phone?: string | null;
+  };
+  status: 'new' | 'confirmed' | 'completed' | 'cancelled';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-messages".
+ */
+export interface ContactMessage {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string | null;
+  subject: string;
+  message: string;
+  status: 'new' | 'read' | 'archived';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -224,6 +749,54 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'product-categories';
+        value: number | ProductCategory;
+      } | null)
+    | ({
+        relationTo: 'products';
+        value: number | Product;
+      } | null)
+    | ({
+        relationTo: 'solutions';
+        value: number | Solution;
+      } | null)
+    | ({
+        relationTo: 'projects';
+        value: number | Project;
+      } | null)
+    | ({
+        relationTo: 'faqs';
+        value: number | Faq;
+      } | null)
+    | ({
+        relationTo: 'testimonials';
+        value: number | Testimonial;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'quotes';
+        value: number | Quote;
+      } | null)
+    | ({
+        relationTo: 'dealer-applications';
+        value: number | DealerApplication;
+      } | null)
+    | ({
+        relationTo: 'sample-requests';
+        value: number | SampleRequest;
+      } | null)
+    | ({
+        relationTo: 'consultations';
+        value: number | Consultation;
+      } | null)
+    | ({
+        relationTo: 'contact-messages';
+        value: number | ContactMessage;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -343,6 +916,403 @@ export interface MediaSelect<T extends boolean = true> {
               filename?: T;
             };
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-categories_select".
+ */
+export interface ProductCategoriesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  group?: T;
+  heroImage?: T;
+  intro?: T;
+  benefits?:
+    | T
+    | {
+        benefit?: T;
+        id?: T;
+      };
+  applications?: T;
+  faqs?: T;
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogImage?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products_select".
+ */
+export interface ProductsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  category?: T;
+  summary?: T;
+  description?: T;
+  heroImage?: T;
+  gallery?: T;
+  finishes?:
+    | T
+    | {
+        name?: T;
+        swatch?: T;
+        id?: T;
+      };
+  colors?:
+    | T
+    | {
+        name?: T;
+        hex?: T;
+        id?: T;
+      };
+  sizes?:
+    | T
+    | {
+        size?: T;
+        id?: T;
+      };
+  material?: T;
+  cuttingMethod?: T;
+  thickness?: T;
+  properties?: T;
+  applications?: T;
+  indoorOutdoor?: T;
+  backlit?: T;
+  customizable?: T;
+  relatedProducts?: T;
+  featured?: T;
+  placeholderMedia?: T;
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogImage?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "solutions_select".
+ */
+export interface SolutionsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  heroImage?: T;
+  intro?: T;
+  recommendedProducts?: T;
+  faqs?: T;
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogImage?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects_select".
+ */
+export interface ProjectsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  location?: T;
+  type?: T;
+  room?: T;
+  productsUsed?: T;
+  materialsUsed?:
+    | T
+    | {
+        material?: T;
+        id?: T;
+      };
+  beforeImage?: T;
+  afterImage?: T;
+  gallery?: T;
+  description?: T;
+  completionDate?: T;
+  services?:
+    | T
+    | {
+        service?: T;
+        id?: T;
+      };
+  featured?: T;
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogImage?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs_select".
+ */
+export interface FaqsSelect<T extends boolean = true> {
+  question?: T;
+  answer?: T;
+  category?: T;
+  relatedPage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials_select".
+ */
+export interface TestimonialsSelect<T extends boolean = true> {
+  name?: T;
+  rating?: T;
+  text?: T;
+  project?: T;
+  product?: T;
+  location?: T;
+  verified?: T;
+  featured?: T;
+  image?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  blocks?:
+    | T
+    | {
+        hero?:
+          | T
+          | {
+              heading?: T;
+              subheading?: T;
+              image?: T;
+              id?: T;
+              blockName?: T;
+            };
+        richText?:
+          | T
+          | {
+              content?: T;
+              id?: T;
+              blockName?: T;
+            };
+        imageGrid?:
+          | T
+          | {
+              images?: T;
+              columns?: T;
+              id?: T;
+              blockName?: T;
+            };
+        statsBand?:
+          | T
+          | {
+              stats?:
+                | T
+                | {
+                    label?: T;
+                    value?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        ctaBand?:
+          | T
+          | {
+              heading?: T;
+              subheading?: T;
+              buttonLabel?: T;
+              buttonHref?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogImage?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quotes_select".
+ */
+export interface QuotesSelect<T extends boolean = true> {
+  reference?: T;
+  customer?:
+    | T
+    | {
+        name?: T;
+        email?: T;
+        phone?: T;
+        preferredContact?: T;
+        city?: T;
+        postalCode?: T;
+      };
+  project?:
+    | T
+    | {
+        projectType?: T;
+        buildType?: T;
+        roomType?: T;
+        timeline?: T;
+      };
+  material?:
+    | T
+    | {
+        product?: T;
+        finish?: T;
+        color?: T;
+        quantity?: T;
+        unit?: T;
+      };
+  dimensions?:
+    | T
+    | {
+        width?: T;
+        height?: T;
+        floorArea?: T;
+        wallCount?: T;
+        doorCount?: T;
+      };
+  customization?:
+    | T
+    | {
+        designRequirements?: T;
+        lighting?: T;
+        fabrication?: T;
+        installationRequired?: T;
+        deliveryRequired?: T;
+      };
+  attachments?: T;
+  status?: T;
+  assignedTo?: T;
+  notes?:
+    | T
+    | {
+        note?: T;
+        author?: T;
+        date?: T;
+        id?: T;
+      };
+  leadScore?: T;
+  source?: T;
+  landingPage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "dealer-applications_select".
+ */
+export interface DealerApplicationsSelect<T extends boolean = true> {
+  firstName?: T;
+  lastName?: T;
+  companyName?: T;
+  companyAddress?: T;
+  email?: T;
+  phone?: T;
+  city?: T;
+  province?: T;
+  postalCode?: T;
+  gstNumber?: T;
+  businessType?: T;
+  yearsInBusiness?: T;
+  annualTurnover?: T;
+  otherBrands?: T;
+  otherBrandNames?: T;
+  moreInfo?: T;
+  documents?: T;
+  status?: T;
+  territory?: T;
+  assignedRep?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sample-requests_select".
+ */
+export interface SampleRequestsSelect<T extends boolean = true> {
+  product?: T;
+  color?: T;
+  finish?: T;
+  quantity?: T;
+  contact?:
+    | T
+    | {
+        name?: T;
+        email?: T;
+        phone?: T;
+        address?: T;
+      };
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consultations_select".
+ */
+export interface ConsultationsSelect<T extends boolean = true> {
+  type?: T;
+  date?: T;
+  time?: T;
+  projectType?: T;
+  productInterest?: T;
+  contact?:
+    | T
+    | {
+        name?: T;
+        email?: T;
+        phone?: T;
+      };
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-messages_select".
+ */
+export interface ContactMessagesSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  phone?: T;
+  subject?: T;
+  message?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

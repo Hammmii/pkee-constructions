@@ -2,7 +2,14 @@
   "$schema": "https://biomejs.dev/schemas/2.5.12/schema.json",
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
-    "includes": ["**", "!**/node_modules", "!.next", "!**/payload-types.ts", "!app/globals.css"]
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!.next",
+      "!**/payload-types.ts",
+      "!app/(payload)/admin/importMap.js",
+      "!app/globals.css"
+    ]
   },
   "formatter": {
     "enabled": true,
