@@ -24,6 +24,16 @@
   --accent: var(--brass);
   --line: color-mix(in oklab, var(--ink) 14%, transparent);
   --line-on-dark: color-mix(in oklab, var(--bone) 16%, transparent);
+
+  /* fixed header height — pages without a full-hero first section pad
+     their top edge with `pt-[var(--header-h)]` so content clears the bar */
+  --header-h: 4rem;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --header-h: 5.5rem;
+  }
 }
 
 @theme inline {
