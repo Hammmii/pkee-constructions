@@ -1,8 +1,8 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.12/schema.json",
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
-    "includes": ["**", "!**/node_modules/**", "!.next/**", "!**/payload-types.ts"]
+    "includes": ["**", "!**/node_modules", "!.next", "!**/payload-types.ts", "!app/globals.css"]
   },
   "formatter": {
     "enabled": true,
@@ -13,7 +13,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "suspicious": { "noExplicitAny": "error", "noConsole": "warn" },
       "style": { "useImportType": "error", "noNonNullAssertion": "off" },
       "correctness": {
@@ -25,7 +25,30 @@
   },
   "overrides": [
     {
-      "includes": ["app/**", "components/**", "lib/**", "actions/**", "collections/**", "blocks/**"],
+      "includes": ["app/globals.css"],
+      "linter": {
+        "rules": {
+          "complexity": { "noImportantStyles": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["scripts/**"],
+      "linter": {
+        "rules": {
+          "suspicious": { "noConsole": "off" }
+        }
+      }
+    },
+    {
+      "includes": [
+        "app/**",
+        "components/**",
+        "lib/**",
+        "actions/**",
+        "collections/**",
+        "blocks/**"
+      ],
       "linter": {
         "rules": {
           "suspicious": { "noReactSpecificProps": "off" }

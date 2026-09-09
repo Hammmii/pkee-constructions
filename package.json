@@ -2,10 +2,20 @@
   "name": "pkee",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/db.mjs start >/dev/null 2>&1; next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "db:start": "node scripts/db.mjs start",
+    "db:stop": "node scripts/db.mjs stop",
+    "db:status": "node scripts/db.mjs status",
+    "payload": "payload",
+    "generate:types": "payload generate:types",
+    "generate:importmap": "payload generate:importmap",
+    "check": "biome check . && tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -30,6 +40,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.1.1",
+    "embedded-postgres": "^18.4.0-beta.17",
     "playwright": "^1.63.0",
     "tailwindcss": "^4",
     "typescript": "^5",
