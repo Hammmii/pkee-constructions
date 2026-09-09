@@ -1,0 +1,36 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "includes": ["**", "!**/node_modules/**", "!.next/**", "!**/payload-types.ts"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": { "noExplicitAny": "error", "noConsole": "warn" },
+      "style": { "useImportType": "error", "noNonNullAssertion": "off" },
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error",
+        "useExhaustiveDependencies": "warn"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["app/**", "components/**", "lib/**", "actions/**", "collections/**", "blocks/**"],
+      "linter": {
+        "rules": {
+          "suspicious": { "noReactSpecificProps": "off" }
+        }
+      }
+    }
+  ]
+}
