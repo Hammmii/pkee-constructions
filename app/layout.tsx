@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
+import { PageTransition } from "@/components/motion/PageTransition";
+import { SmoothScrollProvider } from "@/components/motion/SmoothScrollProvider";
 import "./globals.css";
 
 /* Stand-ins until PP Neue Montreal / Editorial New licenses are purchased
@@ -30,7 +32,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en-CA" className={`${display.variable} ${accent.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-background text-foreground">{children}</body>
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        <SmoothScrollProvider>
+          <PageTransition>{children}</PageTransition>
+        </SmoothScrollProvider>
+      </body>
     </html>
   );
 }
