@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { getPayloadCached } from "@/lib/payload";
+import { Reveal } from "@/components/motion/Reveal";
+import { ProjectCard } from "@/components/projects/ProjectCard";
 import { Chip } from "@/components/ui/Chip";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { Reveal } from "@/components/motion/Reveal";
+import { getPayloadCached } from "@/lib/payload";
 import { JsonLd } from "@/lib/seo/JsonLd";
 import { buildMetadata } from "@/lib/seo/metadata";
-import { ProjectCard } from "@/components/projects/ProjectCard";
 import { PROJECT_TYPES, ROOM_OPTIONS } from "./filterOptions";
 
 export const metadata = buildMetadata({
@@ -76,10 +76,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
           </p>
         </div>
 
-        <nav
-          className="mt-10 flex flex-wrap items-center gap-2"
-          aria-label="Filter projects"
-        >
+        <nav className="mt-10 flex flex-wrap items-center gap-2" aria-label="Filter projects">
           <Link
             href={`/projects${filterQuery(undefined, roomFilter)}`}
             aria-current={typeFilter === undefined ? "true" : undefined}
@@ -98,10 +95,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
               </Link>
             );
           })}
-          <span
-            aria-hidden
-            className="mx-2 hidden h-5 w-px bg-line sm:block"
-          />
+          <span aria-hidden className="mx-2 hidden h-5 w-px bg-line sm:block" />
           {ROOM_OPTIONS.map((r) => {
             const active = roomFilter === r.value;
             return (
@@ -117,7 +111,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
         </nav>
 
         {count === 0 ? (
-          <div className="mt-20 border border-line bg-surface px-8 py-16 text-center">
+          <div className="mt-20 border border-line bg-ink/[0.03] px-8 py-16 text-center">
             <Reveal as="h2" className="font-serif text-3xl text-ink">
               No projects match <em className="font-serif italic">those filters</em> yet
             </Reveal>
