@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { TrackClick } from "@/components/analytics/TrackClick";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { MapEmbed } from "@/components/contact/MapEmbed";
 import { SpecRow } from "@/components/ui/SpecRow";
@@ -62,12 +63,16 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
             </address>
 
             <div className="mt-10 flex flex-wrap gap-4">
-              <a href={phoneHref()} className={actionSolid}>
-                Call {site.phone.display}
-              </a>
-              <a href={mailtoHref()} className={actionGhost}>
-                Email us
-              </a>
+              <TrackClick event="phone_click" source="contact" href={phoneHref()}>
+                <a href={phoneHref()} className={actionSolid}>
+                  Call {site.phone.display}
+                </a>
+              </TrackClick>
+              <TrackClick event="email_click" source="contact" href={mailtoHref()}>
+                <a href={mailtoHref()} className={actionGhost}>
+                  Email us
+                </a>
+              </TrackClick>
             </div>
             <a
               href={directionsUrl()}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Track } from "@/components/analytics/Track";
 
 export const metadata: Metadata = {
   title: "Consultation Request Received",
@@ -25,6 +26,7 @@ export default async function ConsultationConfirmationPage({
 
   return (
     <main className="flex-1 bg-background">
+      <Track event="consultation_booking" properties={{ reference: reference ?? null }} />
       <div className="mx-auto w-full max-w-3xl px-6 py-20 md:px-10 md:py-28">
         <p className="text-label text-brass">Request received</p>
         <h1 className="mt-4 font-serif text-4xl italic text-ink md:text-5xl">
