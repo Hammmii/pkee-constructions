@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import type {
@@ -7,10 +8,13 @@ import type {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
 } from "react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { usePrefersReducedMotion } from "@/components/motion/use-prefers-reduced-motion";
 import { megaQuickLinks } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import type { MegaCategory } from "./types";
+
+const EASE_QUART: [number, number, number, number] = [0.25, 1, 0.5, 1]; // --ease-out-quart
 
 type MegaMenuProps = {
   open: boolean;
@@ -22,20 +26,39 @@ type MegaMenuProps = {
   onClose: () => void;
 };
 
+// Tile entrance: staggered fade/rise per motion spec §4.5 (40–60ms steps).
+// Reduced motion swaps in the instant variants so tiles render in final state.
+const tileStagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
+};
+const tileRise = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
+};
+const tileInstant = { hidden: { opacity: 1, y: 0 }, show: { opacity: 1, y: 0 } };
+
 /**
- * Products mega-menu: an image-tile grid per product family (never a bare
- * text list), with a quick-links footer row.
+ * Products mega-menu: a featured family panel (Aesop pattern — crossfades
+ * to the hovered/focused category) beside an image-tile grid per product
+ * family, with a quick-links footer row.
  *
  * The header owns open state and hover intent; this component renders the
  * panel and its keyboard model: Esc closes (focus back to the trigger via
  * `onClose`), Arrow keys rove across links, Home/End jump, Tab is trapped
- * while open. Everything animates transform | opacity | visibility — the
- * last keeps closed-panel links out of the tab order — and the always-mounted
- * panel keeps SSR output and focus behavior stable. Reduced-motion CSS
- * flushes the transition instantly.
+ * while open. Keyboard focus mirrors pointer hover for the featured image —
+ * roving to a tile crossfades the panel just like hovering it. Tiles enter
+ * with a staggered fade/rise when the menu opens. Everything animates
+ * transform | opacity | visibility — the last keeps closed-panel links out
+ * of the tab order — and the always-mounted panel keeps SSR output and
+ * focus behavior stable. Reduced-motion CSS flushes the transition
+ * instantly.
  */
 export function MegaMenu({ open, categories, onLeave, onCancelLeave, onClose }: MegaMenuProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const reduced = usePrefersReducedMotion();
+  const [activeSlug, setActiveSlug] = useState<string | null>(categories[0]?.slug ?? null);
+  const active = categories.find((category) => category.slug === activeSlug) ?? categories[0];
 
   const focusables = () =>
     Array.from(panelRef.current?.querySelectorAll<HTMLElement>("a[href]") ?? []);
@@ -97,6 +120,10 @@ export function MegaMenu({ open, categories, onLeave, onCancelLeave, onClose }: 
     }
   };
 
+  const activate = (slug: string) => setActiveSlug(slug);
+  const listVariants = reduced ? tileInstant : tileStagger;
+  const itemVariants = reduced ? tileInstant : tileRise;
+
   return (
     <nav
       id="mega-menu"
@@ -124,31 +151,76 @@ export function MegaMenu({ open, categories, onLeave, onCancelLeave, onClose }: 
       )}
     >
       <div className="mx-auto w-full max-w-[90rem] px-6 py-10 md:px-10">
-        <ul className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {categories.map((category) => (
-            <li key={category.slug}>
-              <Link href={`/products/${category.slug}`} onClick={onClose} className="group block">
-                <span className="relative block aspect-[4/5] overflow-hidden bg-stone">
-                  {category.image && (
-                    <Image
-                      src={category.image.url}
-                      alt={category.image.alt}
-                      fill
-                      sizes="(min-width: 80rem) 15vw, (min-width: 64rem) 20vw, (min-width: 48rem) 25vw, 40vw"
-                      className="object-cover transition-transform duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.05]"
-                    />
+        <div className="flex gap-10">
+          {/* Featured family panel — crossfades to the hovered/focused tile. */}
+          {active && (
+            <aside className="hidden w-72 shrink-0 lg:block xl:w-80" aria-hidden="true">
+              <div className="relative aspect-[4/5] overflow-hidden bg-stone">
+                <AnimatePresence initial={false} mode="popLayout">
+                  {active.image && (
+                    <motion.div
+                      key={active.slug}
+                      className="absolute inset-0"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3, ease: EASE_QUART }}
+                    >
+                      <Image
+                        src={active.image.url}
+                        alt={active.image.alt}
+                        fill
+                        sizes="(min-width: 80rem) 20rem, 18rem"
+                        className="object-cover"
+                      />
+                    </motion.div>
                   )}
-                </span>
-                <span className="mt-3 block">
-                  {/* Brass hairline draws under the title on hover — never a lift/shadow. */}
-                  <span className="relative inline-block pb-1 text-[0.8125rem] font-medium uppercase tracking-[0.12em] after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:scale-x-0 after:bg-brass after:transition-transform after:duration-500 after:ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:after:scale-x-100">
-                    {category.name}
+                </AnimatePresence>
+              </div>
+              <p className="mt-3 text-label text-ink/45">Featured family</p>
+              <p className="mt-1 text-[0.8125rem] font-medium uppercase tracking-[0.12em] text-ink">
+                {active.name}
+              </p>
+            </aside>
+          )}
+
+          <motion.ul
+            initial={false}
+            animate={open ? "show" : "hidden"}
+            variants={listVariants}
+            className="grid flex-1 grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4"
+          >
+            {categories.map((category) => (
+              <motion.li key={category.slug} variants={itemVariants}>
+                <Link
+                  href={`/products/${category.slug}`}
+                  onClick={onClose}
+                  onMouseEnter={() => activate(category.slug)}
+                  onFocus={() => activate(category.slug)}
+                  className="group block"
+                >
+                  <span className="relative block aspect-[4/5] overflow-hidden bg-stone">
+                    {category.image && (
+                      <Image
+                        src={category.image.url}
+                        alt={category.image.alt}
+                        fill
+                        sizes="(min-width: 80rem) 15vw, (min-width: 64rem) 20vw, (min-width: 48rem) 25vw, 40vw"
+                        className="object-cover transition-transform duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.05]"
+                      />
+                    )}
                   </span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                  <span className="mt-3 block">
+                    {/* Brass hairline draws under the title on hover — never a lift/shadow. */}
+                    <span className="relative inline-block pb-1 text-[0.8125rem] font-medium uppercase tracking-[0.12em] after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:scale-x-0 after:bg-brass after:transition-transform after:duration-500 after:ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:after:scale-x-100">
+                      {category.name}
+                    </span>
+                  </span>
+                </Link>
+              </motion.li>
+            ))}
+          </motion.ul>
+        </div>
 
         <div className="mt-10 flex flex-wrap items-center gap-x-10 gap-y-3 border-t rule pt-6">
           {megaQuickLinks.map((link) => (
