@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TrackClick } from "@/components/analytics/TrackClick";
 import { Reveal } from "@/components/motion/Reveal";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { Chip } from "@/components/ui/Chip";
@@ -77,35 +78,50 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
         </div>
 
         <nav className="mt-10 flex flex-wrap items-center gap-2" aria-label="Filter projects">
-          <Link
-            href={`/projects${filterQuery(undefined, roomFilter)}`}
-            aria-current={typeFilter === undefined ? "true" : undefined}
+          <TrackClick
+            event="filter_use"
+            properties={{ param: "type", value: null, active: typeFilter === undefined }}
           >
-            <Chip active={typeFilter === undefined}>All</Chip>
-          </Link>
+            <Link
+              href={`/projects${filterQuery(undefined, roomFilter)}`}
+              aria-current={typeFilter === undefined ? "true" : undefined}
+            >
+              <Chip active={typeFilter === undefined}>All</Chip>
+            </Link>
+          </TrackClick>
           {PROJECT_TYPES.map((t) => {
             const active = typeFilter === t.value;
             return (
-              <Link
+              <TrackClick
                 key={t.value}
-                href={`/projects${filterQuery(active ? undefined : t.value, roomFilter)}`}
-                aria-current={active ? "true" : undefined}
+                event="filter_use"
+                properties={{ param: "type", value: t.value, active }}
               >
-                <Chip active={active}>{t.label}</Chip>
-              </Link>
+                <Link
+                  href={`/projects${filterQuery(active ? undefined : t.value, roomFilter)}`}
+                  aria-current={active ? "true" : undefined}
+                >
+                  <Chip active={active}>{t.label}</Chip>
+                </Link>
+              </TrackClick>
             );
           })}
           <span aria-hidden className="mx-2 hidden h-5 w-px bg-line sm:block" />
           {ROOM_OPTIONS.map((r) => {
             const active = roomFilter === r.value;
             return (
-              <Link
+              <TrackClick
                 key={r.value}
-                href={`/projects${filterQuery(typeFilter, active ? undefined : r.value)}`}
-                aria-current={active ? "true" : undefined}
+                event="filter_use"
+                properties={{ param: "room", value: r.value, active }}
               >
-                <Chip active={active}>{r.label}</Chip>
-              </Link>
+                <Link
+                  href={`/projects${filterQuery(typeFilter, active ? undefined : r.value)}`}
+                  aria-current={active ? "true" : undefined}
+                >
+                  <Chip active={active}>{r.label}</Chip>
+                </Link>
+              </TrackClick>
             );
           })}
         </nav>

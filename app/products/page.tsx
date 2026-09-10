@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { Track } from "@/components/analytics/Track";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { type CatalogFilterState, ProductFilters } from "@/components/catalog/ProductFilters";
 import { Container } from "@/components/ui/Container";
@@ -83,9 +84,23 @@ export default async function ProductsPage({ searchParams }: PageProps<"/product
 
   const hasFilters = Boolean(filterQueryFrom(state));
 
+  // Filter/search interactions on this listing live in the client filter
+  // panel; the active params are reflected here on mount instead.
+  const activeFilterProperties = {
+    category: state.category ?? null,
+    material: state.material ?? null,
+    indoorOutdoor: state.indoorOutdoor ?? null,
+    backlit: state.backlit,
+    customizable: state.customizable,
+    properties: state.properties?.length ? state.properties.join(",") : null,
+    sort: state.sort ?? null,
+  };
+
   return (
     <main className="flex-1">
       <JsonLd data={[itemListJsonLd(result.products), localBusinessJsonLd()]} />
+      {state.q ? <Track event="search" properties={{ q: state.q, results: result.total }} /> : null}
+      {hasFilters ? <Track event="filter_use" properties={activeFilterProperties} /> : null}
       <Container className="py-16 md:py-24">
         <div className="rule flex flex-wrap items-end justify-between gap-6 border-b pb-8">
           <SectionHeading index="01" label="Material Library" as="h1">
