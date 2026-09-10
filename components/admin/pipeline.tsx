@@ -4,6 +4,7 @@ import { QUOTE_STATUSES } from "@/collections/Quotes";
 import { PipelineBoard } from "@/components/admin/pipeline-board";
 import type { PipelineQuote, StatusOption } from "@/components/admin/pipeline-helpers";
 import { ADMIN_CSS } from "@/components/admin/styles";
+import { leadSubtitle } from "@/lib/admin";
 
 type ViewProps = {
   initPageResult: { req: PayloadRequest };
@@ -24,6 +25,10 @@ const toPipelineQuote = (doc: Record<string, unknown>): PipelineQuote => {
     assignedToName: assignedTo?.email ?? null,
     leadScore: typeof doc.leadScore === "number" ? doc.leadScore : null,
     source: typeof doc.source === "string" ? doc.source : null,
+    contextLine:
+      leadSubtitle("quotes", doc) ??
+      (typeof doc.source === "string" && doc.source ? doc.source : null),
+    createdAt: String(doc.createdAt ?? ""),
     updatedAt: String(doc.updatedAt ?? ""),
     notes: Array.isArray(doc.notes)
       ? (doc.notes as PipelineQuote["notes"]).map((note) => ({

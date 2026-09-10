@@ -7,6 +7,7 @@ import {
   groupQuotesByStatus,
   moveQuoteInColumns,
 } from "@/components/admin/pipeline-helpers";
+import { relativeTime } from "@/lib/admin";
 
 type Assignee = { id: string; name: string };
 
@@ -163,7 +164,22 @@ export function PipelineBoard({ assignees, currentUserId, initialQuotes, statuse
                     ) : null}
                   </div>
                   <div className="pk-quote-meta">
-                    <span>{quote.customerName}</span>
+                    <span>
+                      {quote.customerName}
+                      {quote.contextLine ? (
+                        <span className="pk-subline">{quote.contextLine}</span>
+                      ) : null}
+                      {quote.createdAt ? (
+                        <time
+                          className="pk-muted"
+                          dateTime={quote.createdAt}
+                          style={{ whiteSpace: "nowrap" }}
+                          title={quote.createdAt}
+                        >
+                          {relativeTime(quote.createdAt)}
+                        </time>
+                      ) : null}
+                    </span>
                     <label>
                       <span className="pk-muted">Status</span>
                       <select

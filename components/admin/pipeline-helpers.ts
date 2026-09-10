@@ -19,6 +19,9 @@ export type PipelineQuote = {
   assignedToName?: string | null;
   leadScore?: number | null;
   source?: string | null;
+  /** "Product · source" context line, pre-computed server-side. */
+  contextLine?: string | null;
+  createdAt: string;
   updatedAt: string;
   notes: PipelineNote[];
 };
