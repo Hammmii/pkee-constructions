@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Track } from "@/components/analytics/Track";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
@@ -116,6 +117,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[cate
 
   return (
     <main className="flex-1">
+      <Track event="product_view" properties={{ product: product.slug, category: categorySlug }} />
       <JsonLd
         data={[
           productJsonLd(product),

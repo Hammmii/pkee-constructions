@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Track } from "@/components/analytics/Track";
 import { QuoteWizard } from "@/components/quote/QuoteWizard";
 import type { CategoryOption, PreselectedProduct, ProductOption } from "@/components/quote/types";
 import { getPayloadCached } from "@/lib/payload";
@@ -58,6 +59,10 @@ export default async function QuotePage({ searchParams }: PageProps<"/quote">) {
 
   return (
     <main className="flex-1 bg-background">
+      <Track
+        event="quote_start"
+        properties={{ product: productSlug ?? null, preselected: Boolean(preselected) }}
+      />
       <div className="mx-auto w-full max-w-3xl px-6 py-20 md:px-10 md:py-28">
         <p className="text-label text-brass">Request a Quote</p>
         <h1 className="mt-4 font-serif text-4xl italic text-ink md:text-5xl">
