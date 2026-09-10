@@ -16,6 +16,7 @@ export default function ProductLoading() {
             <div className="h-4 w-2/3 bg-ink/5" />
             <div className="mt-8 space-y-3">
               {Array.from({ length: 5 }, (_, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton list
                 <div key={i} className="h-10 w-full bg-ink/5" />
               ))}
             </div>

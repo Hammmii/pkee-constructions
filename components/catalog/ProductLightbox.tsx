@@ -2,12 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  type ReactNode,
-} from "react";
+import { type ReactNode, useCallback, useEffect, useRef } from "react";
 
 export type LightboxImage = {
   src: string;
@@ -71,8 +66,9 @@ export function ProductLightbox({
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         );
         if (focusables.length === 0) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
+        const first: HTMLElement | undefined = focusables[0];
+        const last: HTMLElement | undefined = focusables[focusables.length - 1];
+        if (!first || !last) return;
         if (e.shiftKey && document.activeElement === first) {
           e.preventDefault();
           last.focus();

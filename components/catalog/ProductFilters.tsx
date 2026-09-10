@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 
 export type FilterOptions = {
@@ -139,9 +139,7 @@ export function ProductFilters({
 
   const toggleProperty = (value: string) => {
     const current = state.properties ?? [];
-    const next = current.includes(value)
-      ? current.filter((p) => p !== value)
-      : [...current, value];
+    const next = current.includes(value) ? current.filter((p) => p !== value) : [...current, value];
     navigate({ properties: next.length ? next : undefined });
   };
 
@@ -165,7 +163,8 @@ export function ProductFilters({
       patch: { indoorOutdoor: undefined },
     });
   }
-  if (state.backlit) chips.push({ key: "backlit", label: "Backlit", patch: { backlit: undefined } });
+  if (state.backlit)
+    chips.push({ key: "backlit", label: "Backlit", patch: { backlit: undefined } });
   if (state.customizable) {
     chips.push({ key: "customizable", label: "Customizable", patch: { customizable: undefined } });
   }
@@ -250,6 +249,7 @@ export function ProductFilters({
           {options.categories.map((cat) => {
             const active = state.category === cat.slug;
             return (
+              // biome-ignore lint/a11y/useSemanticElements: hairline list radio pattern renders no input chrome by design
               <button
                 key={cat.slug}
                 type="button"

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Media, Project } from "@/payload-types";
 import { Container } from "@/components/ui/Container";
+import type { Media, Project } from "@/payload-types";
 
 function cover(project: Project): { src: string; alt: string } | null {
   const candidates = [project.afterImage, project.gallery?.[0], project.beforeImage];

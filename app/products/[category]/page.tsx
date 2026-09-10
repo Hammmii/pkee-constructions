@@ -1,22 +1,22 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { FaqAccordion } from "@/components/catalog/FaqAccordion";
 import { ProductCard } from "@/components/catalog/ProductCard";
+import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Container } from "@/components/ui/Container";
-import { Reveal } from "@/components/motion/Reveal";
 import { SpecRow } from "@/components/ui/SpecRow";
-import { JsonLd, breadcrumbJsonLd, mediaAbsoluteUrl } from "@/lib/seo/JsonLd";
-import { buildMetadata } from "@/lib/seo/metadata";
 import {
   applicationLabel,
   getCategoryBySlug,
   listCategories,
   listProductsByCategory,
 } from "@/lib/queries/products";
+import { breadcrumbJsonLd, JsonLd, mediaAbsoluteUrl } from "@/lib/seo/JsonLd";
+import { buildMetadata } from "@/lib/seo/metadata";
 import type { Faq, Media } from "@/payload-types";
 
 export async function generateMetadata({
@@ -62,10 +62,9 @@ export default async function CategoryPage({ params }: PageProps<"/products/[cat
     question: faq.question,
     answer: faq.answer,
   }));
-  const related = allCategories.filter(
-    (c) => c.id !== category.id && c.group === category.group,
-  );
-  const relatedFallback = related.length > 0 ? related : allCategories.filter((c) => c.id !== category.id).slice(0, 3);
+  const related = allCategories.filter((c) => c.id !== category.id && c.group === category.group);
+  const relatedFallback =
+    related.length > 0 ? related : allCategories.filter((c) => c.id !== category.id).slice(0, 3);
 
   return (
     <main className="flex-1">
@@ -90,7 +89,10 @@ export default async function CategoryPage({ params }: PageProps<"/products/[cat
         )}
         <Container className="relative z-10 pb-14 pt-40">
           <p className="text-label text-brass">Material Library — Category</p>
-          <Reveal as="h1" className="mt-4 max-w-4xl text-5xl font-medium tracking-tight text-[color:var(--bone-on-ink)] md:text-7xl">
+          <Reveal
+            as="h1"
+            className="mt-4 max-w-4xl text-5xl font-medium tracking-tight text-[color:var(--bone-on-ink)] md:text-7xl"
+          >
             {category.name}
           </Reveal>
           {category.intro && (
@@ -130,7 +132,10 @@ export default async function CategoryPage({ params }: PageProps<"/products/[cat
             <ul className="flex flex-wrap gap-2.5">
               {category.applications.map((app) => (
                 <li key={app}>
-                  <Link href={`/solutions/${app}`} className="transition-opacity duration-300 hover:opacity-70">
+                  <Link
+                    href={`/solutions/${app}`}
+                    className="transition-opacity duration-300 hover:opacity-70"
+                  >
                     <Chip>{applicationLabel(app)}</Chip>
                   </Link>
                 </li>
@@ -219,9 +224,7 @@ export default async function CategoryPage({ params }: PageProps<"/products/[cat
                     href={`/products/${cat.slug}`}
                     className="group flex h-full flex-col justify-between gap-8 p-6 transition-colors duration-300 hover:bg-stone/25"
                   >
-                    <span className="text-lg font-medium tracking-tight text-ink">
-                      {cat.name}
-                    </span>
+                    <span className="text-lg font-medium tracking-tight text-ink">{cat.name}</span>
                     <span className="text-xs uppercase tracking-[0.12em] text-brass">
                       View category →
                     </span>

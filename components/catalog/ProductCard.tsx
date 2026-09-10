@@ -1,12 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Media, Product, ProductCategory } from "@/payload-types";
 import { cn } from "@/lib/utils";
+import type { Media, Product, ProductCategory } from "@/payload-types";
 
-export type ProductCardProduct = Pick<
-  Product,
-  "name" | "slug" | "summary" | "featured"
-> & {
+export type ProductCardProduct = Pick<Product, "name" | "slug" | "summary" | "featured"> & {
   category: number | ProductCategory;
   heroImage: number | Media;
 };

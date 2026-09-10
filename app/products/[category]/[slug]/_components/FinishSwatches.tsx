@@ -33,7 +33,9 @@ export function FinishSwatches({
       </p>
       <div className="mt-3 flex flex-wrap gap-3" role="radiogroup" aria-label={title}>
         {swatches.map((swatch, i) => (
+          // biome-ignore lint/a11y/useSemanticElements: styled radio-dot pattern needs no native input chrome
           <button
+            // biome-ignore lint/suspicious/noArrayIndexKey: swatch names may repeat within one picker
             key={`${swatch.name}-${i}`}
             type="button"
             role="radio"

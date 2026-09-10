@@ -1,20 +1,17 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { ProductCard } from "@/components/catalog/ProductCard";
-import {
-  ProductFilters,
-  type CatalogFilterState,
-} from "@/components/catalog/ProductFilters";
+import { type CatalogFilterState, ProductFilters } from "@/components/catalog/ProductFilters";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { JsonLd, itemListJsonLd, localBusinessJsonLd } from "@/lib/seo/JsonLd";
-import { buildMetadata } from "@/lib/seo/metadata";
 import {
   listFilterOptions,
   listProducts,
-  propertyLabel,
   PRODUCT_PAGE_SIZE,
+  propertyLabel,
 } from "@/lib/queries/products";
-import { redirect } from "next/navigation";
-import type { Metadata } from "next";
+import { itemListJsonLd, JsonLd, localBusinessJsonLd } from "@/lib/seo/JsonLd";
+import { buildMetadata } from "@/lib/seo/metadata";
 import { CatalogEmptyState } from "./_components/CatalogEmptyState";
 import { Pagination } from "./_components/Pagination";
 

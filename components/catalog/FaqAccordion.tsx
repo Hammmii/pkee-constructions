@@ -1,7 +1,8 @@
 import { cn } from "@/lib/utils";
 
 export type FaqItem = {
-  id: string;
+  /** Payload ids are numbers; stable string keys are also accepted. */
+  id: string | number;
   question: string;
   answer: string;
 };
@@ -24,10 +25,7 @@ export function FaqAccordion({
   return (
     <div className={className}>
       {items.map((faq) => (
-        <details
-          key={faq.id}
-          className={cn("group border-t rule", dark && "rule-on-dark")}
-        >
+        <details key={faq.id} className={cn("group border-t rule", dark && "rule-on-dark")}>
           <summary
             className={cn(
               "flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-base font-medium outline-none transition-colors duration-300 [&::-webkit-details-marker]:hidden",

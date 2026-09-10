@@ -3,8 +3,8 @@
 import { motion } from "motion/react";
 import Image from "next/image";
 import { useState } from "react";
+import { type LightboxImage, ProductLightbox } from "@/components/catalog/ProductLightbox";
 import { cn } from "@/lib/utils";
-import { ProductLightbox, type LightboxImage } from "@/components/catalog/ProductLightbox";
 
 const EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -70,7 +70,9 @@ export function ProductGallery({
                 aria-current={i === active}
                 className={cn(
                   "relative block h-20 w-16 overflow-hidden border transition-colors duration-300",
-                  i === active ? "border-brass ring-1 ring-brass" : "border-stone hover:border-ink/40",
+                  i === active
+                    ? "border-brass ring-1 ring-brass"
+                    : "border-stone hover:border-ink/40",
                 )}
               >
                 <Image

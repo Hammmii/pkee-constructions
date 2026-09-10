@@ -1,5 +1,5 @@
-import type { Media, Product, ProductCategory, Project } from "@/payload-types";
 import { getPayloadCached } from "@/lib/payload";
+import type { Media, Product, ProductCategory, Project } from "@/payload-types";
 
 export const PRODUCT_PAGE_SIZE = 12;
 
@@ -44,7 +44,7 @@ export function propertyLabel(value: string): string {
 }
 
 type ProductWithCategory = Product & { category: ProductCategory };
-type CategoryWithFaqs = ProductCategory & { faqs?: (ProductCategory["faqs"] & {}) };
+type CategoryWithFaqs = ProductCategory & { faqs?: ProductCategory["faqs"] & {} };
 
 function isPopulated<T>(value: number | T | null | undefined): value is T {
   return typeof value === "object" && value !== null;
@@ -86,9 +86,7 @@ export async function listProducts(filter: CatalogFilter): Promise<CatalogResult
   const payload = await getPayloadCached();
   const page = Math.max(1, filter.page ?? 1);
 
-  const and: NonNullable<Parameters<typeof payload.find>[0]["where"]>[] = [
-    { _status: PUBLISHED },
-  ];
+  const and: NonNullable<Parameters<typeof payload.find>[0]["where"]>[] = [{ _status: PUBLISHED }];
   if (filter.category) and.push({ "category.slug": { equals: filter.category } });
   if (filter.material) and.push({ material: { equals: filter.material } });
   if (filter.indoorOutdoor) and.push({ indoorOutdoor: { equals: filter.indoorOutdoor } });
@@ -218,9 +216,7 @@ export async function listCategories(): Promise<ProductCategory[]> {
 }
 
 /** All published products for sitemap/related fallbacks (compact shape). */
-export async function listAllProductPaths(): Promise<
-  { categorySlug: string; slug: string }[]
-> {
+export async function listAllProductPaths(): Promise<{ categorySlug: string; slug: string }[]> {
   const payload = await getPayloadCached();
   const { docs } = await payload.find({
     collection: "products",
@@ -260,8 +256,14 @@ export async function listRelatedProducts(
   limit = 4,
 ): Promise<ProductWithCategory[]> {
   const payload = await getPayloadCached();
+  // depth-2 populate: relatedProducts entries are Product objects; the CMS
+  // may also hand back bare ids when a relation is unpopulated — drop those.
   const explicit = (product.relatedProducts ?? [])
-    .map((p) => (isPopulated<ProductWithCategory>(p) ? p : null))
+    .map((p): ProductWithCategory | null =>
+      typeof p === "object" && p !== null && typeof p.category === "object"
+        ? (p as ProductWithCategory)
+        : null,
+    )
     .filter((p): p is ProductWithCategory => p !== null && p.id !== product.id)
     .slice(0, limit);
   if (explicit.length >= limit) return explicit;

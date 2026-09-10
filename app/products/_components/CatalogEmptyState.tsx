@@ -9,8 +9,8 @@ export function CatalogEmptyState({ hasFilters }: { hasFilters: boolean }) {
         No materials match those filters.
       </h2>
       <p className="max-w-md text-ink/60">
-        Try widening a filter or two — or tell us what you&apos;re looking for and we&apos;ll
-        source it.
+        Try widening a filter or two — or tell us what you&apos;re looking for and we&apos;ll source
+        it.
       </p>
       <div className="flex flex-wrap gap-4">
         {hasFilters && (

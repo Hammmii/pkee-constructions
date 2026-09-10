@@ -1,17 +1,12 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FinishSwatches } from "./_components/FinishSwatches";
-import { ProductGallery } from "./_components/ProductGallery";
-import { ProjectsStrip } from "./_components/ProjectsStrip";
 import { ProductCard } from "@/components/catalog/ProductCard";
+import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Container } from "@/components/ui/Container";
-import { Reveal } from "@/components/motion/Reveal";
 import { SpecRow } from "@/components/ui/SpecRow";
-import { JsonLd, breadcrumbJsonLd, mediaAbsoluteUrl, productJsonLd } from "@/lib/seo/JsonLd";
-import { buildMetadata } from "@/lib/seo/metadata";
 import {
   applicationLabel,
   asMedia,
@@ -20,7 +15,12 @@ import {
   listRelatedProducts,
   propertyLabel,
 } from "@/lib/queries/products";
+import { breadcrumbJsonLd, JsonLd, mediaAbsoluteUrl, productJsonLd } from "@/lib/seo/JsonLd";
+import { buildMetadata } from "@/lib/seo/metadata";
 import type { Media, Product } from "@/payload-types";
+import { FinishSwatches } from "./_components/FinishSwatches";
+import { ProductGallery } from "./_components/ProductGallery";
+import { ProjectsStrip } from "./_components/ProjectsStrip";
 
 export async function generateMetadata({
   params,
@@ -43,23 +43,26 @@ export async function generateMetadata({
 function descriptionToText(description: Product["description"]): string[] {
   if (!description?.root?.children) return [];
   const paragraphs: string[] = [];
-  for (const node of description.root.children as { type?: string; children?: { text?: string }[] }[]) {
+  for (const node of description.root.children as {
+    type?: string;
+    children?: { text?: string }[];
+  }[]) {
     if (node.type !== "paragraph" || !node.children) continue;
-    const text = node.children.map((child) => child.text ?? "").join("").trim();
+    const text = node.children
+      .map((child) => child.text ?? "")
+      .join("")
+      .trim();
     if (text) paragraphs.push(text);
   }
   return paragraphs;
 }
 
-export default async function ProductPage({
-  params,
-}: PageProps<"/products/[category]/[slug]">) {
+export default async function ProductPage({ params }: PageProps<"/products/[category]/[slug]">) {
   const { category: categorySlug, slug } = await params;
   const product = await getProductBySlug(categorySlug, slug);
   if (!product) notFound();
 
-  const category =
-    typeof product.category === "object" ? product.category : null;
+  const category = typeof product.category === "object" ? product.category : null;
 
   const [related, projects] = await Promise.all([
     listRelatedProducts(product),
@@ -154,22 +157,19 @@ export default async function ProductPage({
       <Container className="py-10 md:py-14">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <ProductGallery
-              images={images}
-              layoutIdPrefix={`product-${product.id}`}
-              priority
-            />
+            <ProductGallery images={images} layoutIdPrefix={`product-${product.id}`} priority />
           </div>
 
           <div>
             <p className="text-label text-brass">{category?.name ?? "Material"}</p>
-            <Reveal as="h1" className="mt-3 text-4xl font-medium tracking-tight text-ink md:text-6xl">
+            <Reveal
+              as="h1"
+              className="mt-3 text-4xl font-medium tracking-tight text-ink md:text-6xl"
+            >
               {product.name}
             </Reveal>
             {product.summary && (
-              <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink/65">
-                {product.summary}
-              </p>
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink/65">{product.summary}</p>
             )}
 
             {badges.length > 0 && (
@@ -222,7 +222,10 @@ export default async function ProductPage({
             {description.length > 0 && (
               <div className="mt-10 max-w-xl space-y-4 border-t rule pt-8">
                 {description.map((paragraph) => (
-                  <p key={paragraph.slice(0, 32)} className="m-0 text-[0.95rem] leading-relaxed text-ink/70">
+                  <p
+                    key={paragraph.slice(0, 32)}
+                    className="m-0 text-[0.95rem] leading-relaxed text-ink/70"
+                  >
                     {paragraph}
                   </p>
                 ))}
