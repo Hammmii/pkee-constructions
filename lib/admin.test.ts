@@ -131,7 +131,10 @@ describe("buildActivityQuery", () => {
   it("combines status and date range", () => {
     const where = buildActivityQuery({ status: "new", from: "2026-09-01" });
     expect(where).toEqual({
-      and: [{ status: { equals: "new" } }, { createdAt: { greater_than_equal: "2026-09-01T00:00:00.000Z" } }],
+      and: [
+        { status: { equals: "new" } },
+        { createdAt: { greater_than_equal: "2026-09-01T00:00:00.000Z" } },
+      ],
     });
   });
 });
