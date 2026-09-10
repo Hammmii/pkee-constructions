@@ -45,7 +45,9 @@ export function TradeNotificationEmail({
   return (
     <Html lang="en-CA">
       <Head />
-      <Preview>New dealer application {reference} — {company}</Preview>
+      <Preview>
+        New dealer application {reference} — {company}
+      </Preview>
       <Body style={{ backgroundColor: bone, margin: 0, padding: 0 }}>
         <Container style={{ maxWidth: 560, margin: "0 auto", padding: "40px 24px" }}>
           <Section>

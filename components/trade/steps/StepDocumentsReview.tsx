@@ -18,7 +18,7 @@ function PreviewThumb({ file }: { file: File }) {
   if (!file.type.startsWith("image/")) {
     return <span className="text-label text-ink/45">PDF</span>;
   }
-  // eslint-disable-next-line @next/next/no-img-element -- object URL previews are client-only, not optimizable.
+  // biome-ignore lint/performance/noImgElement: client-only object-URL preview; next/image cannot optimize a blob URL.
   return <img src={url} alt="" className="size-12 border border-stone object-cover" />;
 }
 

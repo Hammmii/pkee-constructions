@@ -8,12 +8,7 @@ export const BUSINESS_TYPES = [
   "other",
 ] as const;
 
-export const ANNUAL_TURNOVER_BRACKETS = [
-  "under-250k",
-  "250k-1m",
-  "1m-5m",
-  "5m-plus",
-] as const;
+export const ANNUAL_TURNOVER_BRACKETS = ["under-250k", "250k-1m", "1m-5m", "5m-plus"] as const;
 
 export const MAX_ATTACHMENTS = 5;
 export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -25,13 +20,16 @@ export const ALLOWED_ATTACHMENT_TYPES = [
   "application/pdf",
 ] as const;
 
+const emptyToUndefined = (value: unknown): unknown => {
+  if (value === null || value === undefined) return undefined;
+  if (typeof value === "string" && value.trim() === "") return undefined;
+  return value;
+};
+
 const fileSchema = z
   .instanceof(File)
   .refine((f) => f.size > 0, "File is empty")
-  .refine(
-    (f) => f.size <= MAX_ATTACHMENT_BYTES,
-    "Each file must be 10 MB or smaller",
-  )
+  .refine((f) => f.size <= MAX_ATTACHMENT_BYTES, "Each file must be 10 MB or smaller")
   .refine(
     (f) =>
       (ALLOWED_ATTACHMENT_TYPES as readonly string[]).includes(f.type) ||
@@ -63,17 +61,28 @@ export const businessDetailsSchema = z.object({
 });
 
 export const businessProfileSchema = z.object({
-  businessType: z.enum(BUSINESS_TYPES, {
-    message: "Select your business type",
-  }),
-  yearsInBusiness: z.coerce
-    .number({ message: "Years in business is required" })
-    .int("Enter a whole number")
-    .min(0, "Cannot be negative")
-    .max(150, "Enter a valid number of years"),
-  annualTurnover: z.enum(ANNUAL_TURNOVER_BRACKETS, {
-    message: "Select your annual turnover range",
-  }),
+  businessType: z.preprocess(
+    emptyToUndefined,
+    z.enum([...BUSINESS_TYPES], {
+      required_error: "Select your business type",
+      invalid_type_error: "Select your business type",
+    }),
+  ),
+  yearsInBusiness: z.preprocess(
+    emptyToUndefined,
+    z.coerce
+      .number({ invalid_type_error: "Years in business is required" })
+      .int("Enter a whole number")
+      .min(0, "Cannot be negative")
+      .max(150, "Enter a valid number of years"),
+  ),
+  annualTurnover: z.preprocess(
+    emptyToUndefined,
+    z.enum([...ANNUAL_TURNOVER_BRACKETS], {
+      required_error: "Select your annual turnover range",
+      invalid_type_error: "Select your annual turnover range",
+    }),
+  ),
   otherBrands: z.boolean(),
   otherBrandNames: z.string().trim().max(400).optional(),
   moreInfo: z.string().trim().max(2000).optional(),
@@ -94,13 +103,10 @@ export const tradeApplicationSchema = businessDetailsSchema
     website: z.string().optional(), // honeypot — must stay empty
     turnstileToken: z.string().optional(),
   })
-  .refine(
-    (d) => !d.otherBrands || (d.otherBrandNames && d.otherBrandNames.length > 0),
-    {
-      message: "List the brands you currently carry",
-      path: ["otherBrandNames"],
-    },
-  );
+  .refine((d) => !d.otherBrands || (d.otherBrandNames && d.otherBrandNames.length > 0), {
+    message: "List the brands you currently carry",
+    path: ["otherBrandNames"],
+  });
 
 /** Coerced, validated output shape (yearsInBusiness is a real number). */
 export type TradeApplicationInput = z.output<typeof tradeApplicationSchema>;

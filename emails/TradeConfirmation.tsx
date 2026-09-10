@@ -61,8 +61,8 @@ export function TradeConfirmationEmail({
               Thank you, {firstName}.
             </Text>
             <Text style={{ color: ink, fontSize: 15, lineHeight: 1.6, margin: "12px 0 0" }}>
-              Your dealer application is in. Keep this reference number — our trade team will use
-              it in every follow-up.
+              Your dealer application is in. Keep this reference number — our trade team will use it
+              in every follow-up.
             </Text>
             <Text
               style={{

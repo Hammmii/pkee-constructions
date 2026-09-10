@@ -38,8 +38,6 @@ describe("isAcceptedTradeAttachment", () => {
     expect(isAcceptedTradeAttachment({ type: "application/zip", size: 1024 })).toBe(false);
     expect(isAcceptedTradeAttachment({ type: "text/plain", size: 1024 })).toBe(false);
     expect(isAcceptedTradeAttachment({ type: "image/png", size: 0 })).toBe(false);
-    expect(isAcceptedTradeAttachment({ type: "image/png", size: maxBytesPerFile + 1 })).toBe(
-      false,
-    );
+    expect(isAcceptedTradeAttachment({ type: "image/png", size: maxBytesPerFile + 1 })).toBe(false);
   });
 });

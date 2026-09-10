@@ -19,10 +19,7 @@ export function dealerReferenceFromCount(year: number, count: number): string {
 }
 
 /** Server-side mirror of the client-side attachment validation. */
-export function isAcceptedTradeAttachment(file: {
-  type: string;
-  size: number;
-}): boolean {
+export function isAcceptedTradeAttachment(file: { type: string; size: number }): boolean {
   const allowed =
     file.type === "application/pdf" ||
     file.type === "image/png" ||

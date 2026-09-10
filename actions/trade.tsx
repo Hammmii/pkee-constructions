@@ -12,8 +12,8 @@ import {
 } from "@/lib/trade";
 import {
   BUSINESS_TYPE_LABELS,
-  TURNOVER_LABELS,
   type TradeApplicationInput,
+  TURNOVER_LABELS,
   tradeApplicationSchema,
 } from "@/lib/validators/trade";
 
@@ -79,17 +79,11 @@ function parseFormData(formData: FormData) {
   };
 }
 
-function labelFor(
-  labels: Record<string, string>,
-  value: string | null | undefined,
-): string | null {
+function labelFor(labels: Record<string, string>, value: string | null | undefined): string | null {
   return value ? (labels[value] ?? value) : null;
 }
 
-function buildSummaryRows(
-  data: TradeApplicationInput,
-  attachmentCount: number,
-): TradeSummaryRow[] {
+function buildSummaryRows(data: TradeApplicationInput, attachmentCount: number): TradeSummaryRow[] {
   const rows: TradeSummaryRow[] = [];
   const push = (label: string, value: string | null | undefined) => {
     if (value) rows.push({ label, value });
