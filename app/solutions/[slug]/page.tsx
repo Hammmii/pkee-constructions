@@ -44,7 +44,7 @@ async function findSolution(slug: string): Promise<SolutionDoc | null> {
       and: [{ slug: { equals: slug } }, { _status: { equals: "published" } }],
     },
     limit: 1,
-    depth: 1,
+    depth: 2,
     overrideAccess: false,
   });
   return (docs[0] as SolutionDoc | undefined) ?? null;

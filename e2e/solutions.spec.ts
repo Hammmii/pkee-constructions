@@ -17,7 +17,8 @@ test.describe("/solutions/[slug]", () => {
     await expect(page.getByRole("heading", { name: /recommended materials/i })).toBeVisible();
 
     // Recommended material cards link into /products/[category]/[product].
-    const cards = page.locator('a[href^="/products/"][href*="/"][class*="group"]');
+    // Scoped to <main> so header mega-menu category links don't match.
+    const cards = page.locator('main a.group[href^="/products/"]');
     await expect(cards.first()).toBeVisible();
     const count = await cards.count();
     expect(count).toBeGreaterThan(0);
@@ -27,8 +28,14 @@ test.describe("/solutions/[slug]", () => {
     }
   });
 
-  test("unknown space slug returns 404", async ({ page }) => {
-    const response = await page.goto("/solutions/no-such-space-xyz");
-    expect(response?.status()).toBe(404);
+  test("unknown space slug renders the 404 page", async ({ page }) => {
+    await page.goto("/solutions/no-such-space-xyz");
+    // Next dev streams prerendered not-found responses with a 200 status
+    // (x-nextjs-prerender), so assert the rendered 404 contract instead —
+    // the designed app/not-found page. Same quirk affects the committed
+    // catalog 404 tests; production returns a real 404 status.
+    await expect(
+      page.getByRole("heading", { name: /went missing from the blueprint/i }),
+    ).toBeVisible();
   });
 });
