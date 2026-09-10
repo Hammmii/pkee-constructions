@@ -53,6 +53,7 @@ export const Projects: CollectionConfig = {
       type: "array",
       fields: [{ name: "material", type: "text", required: true }],
     },
+    { name: "heroImage", type: "upload", relationTo: "media" },
     { name: "beforeImage", type: "upload", relationTo: "media" },
     { name: "afterImage", type: "upload", relationTo: "media" },
     { name: "gallery", type: "upload", relationTo: "media", hasMany: true },

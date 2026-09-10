@@ -441,6 +441,7 @@ export interface Project {
         id?: string | null;
       }[]
     | null;
+  heroImage?: (number | null) | Media;
   beforeImage?: (number | null) | Media;
   afterImage?: (number | null) | Media;
   gallery?: (number | Media)[] | null;
@@ -1039,6 +1040,7 @@ export interface ProjectsSelect<T extends boolean = true> {
         material?: T;
         id?: T;
       };
+  heroImage?: T;
   beforeImage?: T;
   afterImage?: T;
   gallery?: T;
