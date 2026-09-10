@@ -38,6 +38,10 @@ export default buildConfig({
           Component: "/components/admin/pipeline#PipelineView",
           path: "/pipeline",
         },
+        activity: {
+          Component: "/components/admin/activity#ActivityView",
+          path: "/activity",
+        },
       },
     },
   },
