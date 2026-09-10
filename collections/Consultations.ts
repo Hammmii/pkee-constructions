@@ -17,6 +17,21 @@ export const Consultations: CollectionConfig = {
   },
   fields: [
     {
+      name: "source",
+      type: "select",
+      options: [
+        { label: "Website — Quote", value: "website-quote" },
+        { label: "Website — Samples", value: "website-samples" },
+        { label: "Website — Consultation", value: "website-consultation" },
+        { label: "Website — Custom Studio", value: "website-custom-studio" },
+        { label: "Phone", value: "phone" },
+        { label: "Walk-in", value: "walk-in" },
+        { label: "Other", value: "other" },
+      ],
+      defaultValue: "website-consultation",
+      index: true,
+    },
+    {
       name: "type",
       type: "select",
       required: true,
