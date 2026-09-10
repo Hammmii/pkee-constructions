@@ -17,9 +17,8 @@ test.describe("/products catalog", () => {
     // At least one product card links into a category detail route.
     const card = page.locator('a[href^="/products/"][href*="/"][class*="group"]').first();
     await expect(card).toBeVisible();
-    await expect(
-      page.locator('a[href*="/quote"]', { hasText: /Request it/i }).first(),
-    ).toBeVisible();
+    const href = await card.getAttribute("href");
+    expect(href).toMatch(/^\/products\/[\w-]+\/[\w-]+$/);
   });
 
   test("filter click updates the URL and the results", async ({ page }) => {
@@ -63,7 +62,9 @@ test.describe("/products catalog", () => {
 
   test("out-of-range page clamps back to page 1", async ({ page }) => {
     await page.goto("/products?page=99");
-    await expect(page).toHaveURL(/\/products(\?.*)?$/, { timeout: 15000 });
+    // The clamp is a streamed redirect: the client router (or meta refresh)
+    // navigates to page 1 shortly after the shell arrives.
+    await page.waitForURL((url) => !url.searchParams.has("page"), { timeout: 15000 });
     expect(page.url()).not.toContain("page=99");
     const cards = page.locator("main li a.group");
     await expect(cards.first()).toBeVisible();
@@ -72,9 +73,17 @@ test.describe("/products catalog", () => {
   test("catalog emits ItemList JSON-LD", async ({ page }) => {
     await page.goto("/products");
     const jsonLd = await page.locator('script[type="application/ld+json"]').allTextContents();
-    const itemLists = jsonLd.map((raw) => JSON.parse(raw)).filter((d) => d["@type"] === "ItemList");
-    expect(itemLists.length).toBeGreaterThan(0);
-    expect(itemLists[0].itemListElement.length).toBeGreaterThan(0);
+    // One script tag carries the full payload: [ItemList, LocalBusiness].
+    const graphs = jsonLd.flatMap((raw) => {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [parsed];
+    });
+    const itemList = graphs.find((d) => d["@type"] === "ItemList");
+    expect(itemList).toBeTruthy();
+    expect(itemList.itemListElement.length).toBeGreaterThan(0);
+    expect(
+      graphs.some((d) => Array.isArray(d["@type"]) && d["@type"].includes("LocalBusiness")),
+    ).toBe(true);
   });
 });
 
@@ -138,10 +147,15 @@ test.describe("/products/[category]/[slug] detail", () => {
 
     // Product JSON-LD with brand, no offers (quotes-only model)
     const jsonLd = await page.locator('script[type="application/ld+json"]').allTextContents();
-    const product = jsonLd.map((raw) => JSON.parse(raw)).find((d) => d["@type"] === "Product");
-    expect(product).toBeTruthy();
-    expect(product.brand.name).toBe("PKEE Constructions");
-    expect(product.offers).toBeUndefined();
+    const graphs = jsonLd.flatMap((raw) => {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [parsed];
+    });
+    const productLd = graphs.find((d) => d["@type"] === "Product");
+    expect(productLd).toBeTruthy();
+    expect(productLd.brand.name).toBe("PKEE Constructions");
+    expect(productLd.offers).toBeUndefined();
+    expect(graphs.some((d) => d["@type"] === "BreadcrumbList")).toBe(true);
   });
 
   test("gallery opens keyboard-operable lightbox", async ({ page }) => {

@@ -46,3 +46,8 @@ next-env.d.ts
 
 # biome
 biome-*.tgz
+
+# test artifacts
+test-results/
+playwright-report/
+scripts/tmp-*.mjs

@@ -74,7 +74,8 @@ export default async function ProductsPage({ searchParams }: PageProps<"/product
   ]);
 
   // Out-of-range page (e.g. filters shrank the result set): clamp to page 1,
-  // preserving the active filters.
+  // preserving the active filters. (Next streams this redirect — the client
+  // router / meta refresh performs the navigation.)
   if (result.products.length === 0 && result.total > 0 && page > 1) {
     const qs = filterQueryFrom(state);
     redirect(qs ? `/products?${qs}` : "/products");
