@@ -1,5 +1,6 @@
 "use client";
 
+import NumberFlow from "@number-flow/react";
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useMounted, usePrefersReducedMotion } from "../motion/use-prefers-reduced-motion";
@@ -78,7 +79,9 @@ export function Preloader() {
     >
       <span className="font-serif text-6xl italic text-brass">P</span>
       <span className="mt-6 text-[color:var(--bone-on-ink)]">
-        <span className="text-label">{count}</span>
+        <span className="text-label">
+          <NumberFlow value={count} animated={!reduced} format={{ useGrouping: false }} />
+        </span>
         <span className="text-label text-[color:var(--bone-dim)]"> — 100</span>
       </span>
       <span className="mt-2 text-label text-[color:var(--bone-dim)]">PKEE Constructions</span>
