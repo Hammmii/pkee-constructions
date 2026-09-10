@@ -159,7 +159,12 @@ test.describe("file-upload rejection", () => {
 test.describe("CTA → prefill wiring", () => {
   test("product page Request-a-quote CTA prefills the wizard material step", async ({ page }) => {
     await page.goto("/products/pvc-wall-panels/classic-marble-pvc-panel");
-    await page.getByRole("link", { name: "Request a quote" }).first().click();
+    // Scope to <main> — the header nav also carries a "Request a Quote" link.
+    await page
+      .locator("main")
+      .getByRole("link", { name: "Request a quote" })
+      .first()
+      .click();
     await page.waitForURL(/\/quote\?product=classic-marble-pvc-panel/);
 
     // Walk to the material step.
@@ -179,7 +184,9 @@ test.describe("CTA → prefill wiring", () => {
     await page.goto("/custom-studio");
     await page.getByRole("link", { name: /^book a designer$/i }).first().click();
     await page.waitForURL(/\/consultation\?type=showroom/);
-    await expect(page.locator("main")).toBeVisible();
+    // The hydration bug (audit #3) renders two <main> elements — assert on
+    // the content one.
+    await expect(page.locator("main", { has: page.getByRole("heading") }).first()).toBeVisible();
     await expect(page).toHaveTitle(/consultation/i);
   });
 
@@ -195,7 +202,9 @@ test.describe("CTA → prefill wiring", () => {
       // Every target renders (200, real product — not the 404 contract).
       const target = await page.request.get(href ?? "");
       expect(target.status(), `${href} must resolve`).toBe(200);
-      const body = await target.text();
+      // Strip <script> flight data — Next dev embeds the not-found page in
+      // every response (same quirk as qa/check-links.mts).
+      const body = (await target.text()).replace(/<script[\s\S]*?<\/script>/g, "");
       expect(body.includes("went missing from the blueprint")).toBe(false);
     }
   });
