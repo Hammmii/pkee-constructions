@@ -1,11 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
+import { type ReactNode, useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { type FieldPath, FormProvider, type Resolver, useForm } from "react-hook-form";
 import { type QuoteActionState, submitQuote } from "@/actions/quote";
+import { usePrefersReducedMotion } from "@/components/motion/use-prefers-reduced-motion";
 import { QUOTE_STEPS } from "@/lib/quote";
+import { cn } from "@/lib/utils";
 import { type QuoteFormInput, quoteSchema } from "@/lib/validators/quote";
 import { HoneypotField } from "./HoneypotField";
 import { ProgressIndicator } from "./ProgressIndicator";
@@ -19,6 +22,9 @@ import { StepReview } from "./steps/StepReview";
 import { TurnstileWidget } from "./TurnstileWidget";
 import type { CategoryOption, PreselectedProduct, ProductOption } from "./types";
 
+const EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1]; // --ease-out-expo
+const STEP_S = 0.35; // motion spec §2: standard tier
+
 const STEP_TITLES = [
   "Your details",
   "Project",
@@ -27,6 +33,16 @@ const STEP_TITLES = [
   "Customization",
   "Attachments",
   "Review",
+];
+
+const STEP_HEADINGS = [
+  <>First, how do we reach you?</>,
+  <>Tell us about the project.</>,
+  <>Which material are you drawn to?</>,
+  <>Rough dimensions.</>,
+  <>Anything we should design around?</>,
+  <>Photos or plans? Attach them here.</>,
+  <>Review and send.</>,
 ];
 
 /** Fields validated when leaving each step (index 5 = attachments, index 6 = review). */
@@ -73,12 +89,18 @@ const navBase =
 const navSolid = `${navBase} bg-ink text-bone hover:bg-charcoal disabled:pointer-events-none disabled:opacity-50`;
 const navGhost = `${navBase} border border-stone text-ink hover:border-ink`;
 
-function SubmitButton() {
+function SubmitButton({ reduced }: { reduced: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" disabled={pending} className={navSolid}>
+    <motion.button
+      type="submit"
+      disabled={pending}
+      className={navSolid}
+      whileTap={reduced ? undefined : { scale: 0.97 }}
+      transition={{ duration: 0.15 }}
+    >
       {pending ? "Sending…" : "Submit request"}
-    </button>
+    </motion.button>
   );
 }
 
@@ -97,6 +119,14 @@ type QuoteWizardProps = {
  * native submit — the server action parses the full FormData. After mount,
  * the same DOM becomes a stepped wizard: non-active fieldsets are hidden,
  * per-step zod validation gates "Continue", and state survives back/forward.
+ *
+ * Every fieldset STAYS MOUNTED at all times (hidden inputs must remain in
+ * the FormData for the server action) — so the step transition animates the
+ * active fieldset in (x: 24 → 0) while the outgoing one, parked absolutely
+ * for one transition duration (x → −24, opacity → 0), is then hidden. That
+ * keeps one layout footprint and full progressive enhancement. Reduced
+ * motion swaps steps instantly, exactly like the pre-hydration behavior.
+ * Presentation only — no form logic changes.
  */
 export function QuoteWizard({
   products,
@@ -104,15 +134,25 @@ export function QuoteWizard({
   preselected,
   turnstileSiteKey,
 }: QuoteWizardProps) {
+  const reduced = usePrefersReducedMotion();
   const [state, formAction] = useActionState<QuoteActionState, FormData>(submitQuote, {
     status: "idle",
   });
   const [step, setStep] = useState(0);
+  const [leaving, setLeaving] = useState<number | null>(null);
+  const leavingTimer = useRef(0);
   const [mounted, setMounted] = useState(false);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const landingPageRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(leavingTimer.current);
+    },
+    [],
+  );
 
   // Capture the entry page client-side; the no-JS path simply sends nothing.
   useEffect(() => {
@@ -154,17 +194,86 @@ export function QuoteWizard({
     }
   }, [state, form]);
 
+  const transitionTo = (next: number) => {
+    if (next === step) return;
+    if (!reduced) {
+      // Park the outgoing step absolutely while it exits, then hide it.
+      setLeaving(step);
+      window.clearTimeout(leavingTimer.current);
+      leavingTimer.current = window.setTimeout(() => setLeaving(null), STEP_S * 1000);
+    }
+    setStep(next);
+  };
+
   const goNext = async () => {
     if (step === QUOTE_STEPS - 2 && attachmentError) return;
     const fields = STEP_FIELDS[step] ?? [];
     const valid = fields.length === 0 || (await form.trigger(fields));
-    if (valid) setStep((current) => Math.min(current + 1, QUOTE_STEPS - 1));
+    if (valid) transitionTo(Math.min(step + 1, QUOTE_STEPS - 1));
   };
 
-  const goBack = () => setStep((current) => Math.max(current - 1, 0));
-  const goTo = (target: number) => setStep(Math.max(0, Math.min(target, QUOTE_STEPS - 1)));
+  const goBack = () => transitionTo(Math.max(step - 1, 0));
+  const goTo = (target: number) => transitionTo(Math.max(0, Math.min(target, QUOTE_STEPS - 1)));
 
-  const fieldsetHidden = (index: number) => (mounted ? index !== step : false);
+  const fieldsetHidden = (index: number) => (mounted ? index !== step && index !== leaving : false);
+
+  const stepBodies: ReactNode[] = [
+    <StepCustomer key="customer" />,
+    <StepProject key="project" />,
+    <StepMaterial key="material" products={products} categories={categories} />,
+    <StepDimensions key="dimensions" />,
+    <StepCustomization key="customization" />,
+    <StepAttachments key="attachments" onErrorChange={setAttachmentError} />,
+    <StepReview key="review" products={products} onEdit={goTo} />,
+  ];
+
+  const renderStep = (index: number) => {
+    const body = (
+      <>
+        {mounted && (
+          <h2 className="mb-8 font-serif text-3xl italic text-ink">{STEP_HEADINGS[index]}</h2>
+        )}
+        {stepBodies[index]}
+      </>
+    );
+    const isLeaving = mounted && leaving === index;
+    const isActive = !mounted || index === step;
+    const inner = reduced ? (
+      body
+    ) : isLeaving ? (
+      <motion.div
+        key="leaving"
+        initial={{ opacity: 1, x: 0 }}
+        animate={{ opacity: 0, x: -24 }}
+        transition={{ duration: STEP_S, ease: EXPO }}
+      >
+        {body}
+      </motion.div>
+    ) : isActive ? (
+      <motion.div
+        key={`active-${index}`}
+        initial={{ opacity: 0, x: 24 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: STEP_S, ease: EXPO }}
+      >
+        {body}
+      </motion.div>
+    ) : (
+      body
+    );
+    return (
+      <fieldset
+        key={index}
+        hidden={fieldsetHidden(index)}
+        className={cn("mt-10", isLeaving && "absolute inset-x-0")}
+      >
+        <legend className="sr-only">
+          Step {index + 1} — {STEP_TITLES[index]}
+        </legend>
+        {inner}
+      </fieldset>
+    );
+  };
 
   return (
     <FormProvider {...form}>
@@ -182,69 +291,7 @@ export function QuoteWizard({
           </p>
         )}
 
-        <fieldset hidden={fieldsetHidden(0)} className="mt-10">
-          <legend className="sr-only">Step 1 — {STEP_TITLES[0]}</legend>
-          {mounted && (
-            <h2 className="mb-8 font-serif text-3xl italic text-ink">
-              First, how do we reach you?
-            </h2>
-          )}
-          <StepCustomer />
-        </fieldset>
-
-        <fieldset hidden={fieldsetHidden(1)} className="mt-10">
-          <legend className="sr-only">Step 2 — {STEP_TITLES[1]}</legend>
-          {mounted && (
-            <h2 className="mb-8 font-serif text-3xl italic text-ink">Tell us about the project.</h2>
-          )}
-          <StepProject />
-        </fieldset>
-
-        <fieldset hidden={fieldsetHidden(2)} className="mt-10">
-          <legend className="sr-only">Step 3 — {STEP_TITLES[2]}</legend>
-          {mounted && (
-            <h2 className="mb-8 font-serif text-3xl italic text-ink">
-              Which material are you drawn to?
-            </h2>
-          )}
-          <StepMaterial products={products} categories={categories} />
-        </fieldset>
-
-        <fieldset hidden={fieldsetHidden(3)} className="mt-10">
-          <legend className="sr-only">Step 4 — {STEP_TITLES[3]}</legend>
-          {mounted && (
-            <h2 className="mb-8 font-serif text-3xl italic text-ink">Rough dimensions.</h2>
-          )}
-          <StepDimensions />
-        </fieldset>
-
-        <fieldset hidden={fieldsetHidden(4)} className="mt-10">
-          <legend className="sr-only">Step 5 — {STEP_TITLES[4]}</legend>
-          {mounted && (
-            <h2 className="mb-8 font-serif text-3xl italic text-ink">
-              Anything we should design around?
-            </h2>
-          )}
-          <StepCustomization />
-        </fieldset>
-
-        <fieldset hidden={fieldsetHidden(5)} className="mt-10">
-          <legend className="sr-only">Step 6 — {STEP_TITLES[5]}</legend>
-          {mounted && (
-            <h2 className="mb-8 font-serif text-3xl italic text-ink">
-              Photos or plans? Attach them here.
-            </h2>
-          )}
-          <StepAttachments onErrorChange={setAttachmentError} />
-        </fieldset>
-
-        <fieldset hidden={fieldsetHidden(6)} className="mt-10">
-          <legend className="sr-only">Step 7 — {STEP_TITLES[6]}</legend>
-          {mounted && (
-            <h2 className="mb-8 font-serif text-3xl italic text-ink">Review and send.</h2>
-          )}
-          <StepReview products={products} onEdit={goTo} />
-        </fieldset>
+        {STEP_TITLES.map((_, index) => renderStep(index))}
 
         <HoneypotField />
         <input ref={landingPageRef} type="hidden" name="landingPage" />
@@ -261,18 +308,30 @@ export function QuoteWizard({
               Submit request
             </button>
           ) : step > 0 ? (
-            <button type="button" onClick={goBack} className={navGhost}>
+            <motion.button
+              type="button"
+              onClick={goBack}
+              className={navGhost}
+              whileTap={reduced ? undefined : { scale: 0.97 }}
+              transition={{ duration: 0.15 }}
+            >
               Back
-            </button>
+            </motion.button>
           ) : null}
 
           {mounted && step < QUOTE_STEPS - 1 && (
-            <button type="button" onClick={goNext} className={navSolid}>
+            <motion.button
+              type="button"
+              onClick={goNext}
+              className={navSolid}
+              whileTap={reduced ? undefined : { scale: 0.97 }}
+              transition={{ duration: 0.15 }}
+            >
               {step === QUOTE_STEPS - 2 ? "Review request" : "Continue"}
-            </button>
+            </motion.button>
           )}
 
-          {mounted && step === QUOTE_STEPS - 1 && <SubmitButton />}
+          {mounted && step === QUOTE_STEPS - 1 && <SubmitButton reduced={reduced} />}
         </div>
       </form>
     </FormProvider>

@@ -23,7 +23,7 @@ export function ProgressIndicator({ step, total, labels }: ProgressIndicatorProp
       </div>
       <div className="mt-3 h-px w-full bg-ink/15">
         <div
-          className="h-px origin-left bg-brass transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          className="h-px origin-left bg-brass transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
           style={{ transform: `scaleX(${(step + 1) / total})` }}
         />
       </div>

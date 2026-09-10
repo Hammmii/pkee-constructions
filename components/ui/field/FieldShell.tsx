@@ -24,12 +24,17 @@ export function FieldShell({
 }: FieldShellProps) {
   const errorId = `${id}-error`;
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("group relative", className)}>
       <label
         htmlFor={id}
         className={cn(
-          "text-label pointer-events-none absolute top-0 left-0",
-          error ? "text-clay" : dark ? "text-[color:var(--bone-dim)]" : "text-ink/55",
+          "text-label pointer-events-none absolute top-0 left-0 transition-colors duration-300",
+          error
+            ? "text-clay"
+            : cn(
+                dark ? "text-[color:var(--bone-dim)]" : "text-ink/55",
+                "group-focus-within:text-brass",
+              ),
         )}
       >
         {label}
