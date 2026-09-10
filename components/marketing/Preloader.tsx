@@ -48,7 +48,7 @@ export function Preloader() {
     const tick = (now: number) => {
       const progress = Math.min(1, (now - start) / COUNT_MS);
       // ease the counter so it decelerates like a real loader
-      setCount(Math.round((1 - Math.pow(1 - progress, 2)) * 100));
+      setCount(Math.round((1 - (1 - progress) ** 2) * 100));
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(tick);
       } else {

@@ -2,9 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { ImageReveal } from "@/components/motion/ImageReveal";
 import { Reveal } from "@/components/motion/Reveal";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Container } from "@/components/ui/Container";
 import { Grid } from "@/components/ui/Grid";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { FeaturedProduct } from "./home-types";
 
 type FeaturedMaterialsProps = {

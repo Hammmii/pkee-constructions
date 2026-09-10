@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ImageReveal } from "@/components/motion/ImageReveal";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Container } from "@/components/ui/Container";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { CapabilityCard } from "./home-types";
 
 type CustomStudioTeaserProps = {

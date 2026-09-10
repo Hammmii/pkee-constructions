@@ -4,8 +4,8 @@ import { AnimatePresence, motion, useMotionValue, useSpring } from "motion/react
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Container } from "@/components/ui/Container";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { useMounted, usePrefersReducedMotion } from "../motion/use-prefers-reduced-motion";
 import type { ProjectItem } from "./home-types";
 

@@ -2,8 +2,8 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Container } from "@/components/ui/Container";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { TestimonialItem } from "./home-types";
 
 const EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1]; // --ease-out-expo
@@ -63,7 +63,8 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
                 →
               </button>
               <span className="text-label ml-3 text-ink/55 tabular-nums">
-                {String(index + 1).padStart(2, "0")} / {String(testimonials.length).padStart(2, "0")}
+                {String(index + 1).padStart(2, "0")} /{" "}
+                {String(testimonials.length).padStart(2, "0")}
               </span>
             </div>
           </div>

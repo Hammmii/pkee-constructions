@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BeforeAfterSlider } from "@/components/ui/BeforeAfterSlider";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Container } from "@/components/ui/Container";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { ProjectItem } from "./home-types";
 
 type BeforeAfterTeaserProps = {

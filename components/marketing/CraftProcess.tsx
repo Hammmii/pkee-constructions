@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useRef } from "react";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Container } from "@/components/ui/Container";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { gsap, initGsap, useGSAP } from "@/lib/gsap";
 import { usePrefersReducedMotion } from "../motion/use-prefers-reduced-motion";
 import type { HomeMedia } from "./home-types";
@@ -51,7 +51,9 @@ export function CraftProcess({ primary, secondary }: CraftProcessProps) {
             },
           ),
         );
-        return () => tweens.forEach((tween) => tween.kill());
+        return () => {
+          for (const tween of tweens) tween.kill();
+        };
       });
 
       return () => mm.revert();
@@ -91,7 +93,10 @@ export function CraftProcess({ primary, secondary }: CraftProcessProps) {
                 image?.url && (
                   <div key={image.url} className={i % 2 === 1 ? "md:mt-24" : ""}>
                     <div className="relative aspect-[4/5] overflow-hidden md:aspect-[3/4]">
-                      <div data-parallax className="absolute -inset-y-[6%] inset-x-0 will-change-transform">
+                      <div
+                        data-parallax
+                        className="absolute -inset-y-[6%] inset-x-0 will-change-transform"
+                      >
                         <Image
                           src={image.url}
                           alt={image.alt}

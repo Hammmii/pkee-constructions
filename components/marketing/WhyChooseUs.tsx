@@ -2,14 +2,17 @@
 
 import { useInView } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { SpecRow } from "@/components/ui/SpecRow";
-import { Container } from "@/components/ui/Container";
 import { useMounted, usePrefersReducedMotion } from "../motion/use-prefers-reduced-motion";
 import type { StatItem } from "./home-types";
 
 const VALUE_PROPS: Array<[string, string]> = [
-  ["One team, start to finish", "Supply, fabrication, and installation under one roof — no handoffs."],
+  [
+    "One team, start to finish",
+    "Supply, fabrication, and installation under one roof — no handoffs.",
+  ],
   ["A real showroom", "See full-size installed displays at 360 Keewatin St before you commit."],
   ["Built for Manitoba", "Waterproof, fire-resistant options rated for basements and bathrooms."],
   ["Custom fabrication in-house", "CNC carving, book-matching, and 3D relief made to your design."],
@@ -78,7 +81,7 @@ function Stat({ label, value }: StatItem) {
     let raf = 0;
     const tick = (now: number) => {
       const progress = Math.min(1, (now - start) / DURATION);
-      const eased = 1 - Math.pow(1 - progress, 3);
+      const eased = 1 - (1 - progress) ** 3;
       setDisplay(`${Math.round(target * eased).toLocaleString("en-CA")}${suffix}`);
       if (progress < 1) raf = requestAnimationFrame(tick);
     };

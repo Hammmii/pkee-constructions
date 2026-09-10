@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Container } from "@/components/ui/Container";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { gsap, initGsap, useGSAP } from "@/lib/gsap";
 import { usePrefersReducedMotion } from "../motion/use-prefers-reduced-motion";
 import type { CategoryCard } from "./home-types";

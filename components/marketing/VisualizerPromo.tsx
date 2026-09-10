@@ -1,6 +1,6 @@
+import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
-import { Reveal } from "@/components/motion/Reveal";
 
 /**
  * Static band for the Phase 3 room visualizer. Deliberately type-led and

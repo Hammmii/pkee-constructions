@@ -2,8 +2,8 @@
 
 import { motion } from "motion/react";
 import Image from "next/image";
-import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/motion/Reveal";
+import { Button } from "@/components/ui/Button";
 import { useMounted, usePrefersReducedMotion } from "../motion/use-prefers-reduced-motion";
 import type { HomeMedia } from "./home-types";
 
