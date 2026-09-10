@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Track } from "@/components/analytics/Track";
+import { getPayloadCached } from "@/lib/payload";
 
 export const metadata: Metadata = {
   title: "Application Received",
@@ -8,21 +9,33 @@ export const metadata: Metadata = {
 };
 
 const REFERENCE_PATTERN = /^DA-\d{4}-\d{4}$/;
-const NAME_PATTERN = /^[\p{L}][\p{L}'’\- ]{0,39}$/u;
 
 /**
- * Post-submit landing. Only the reference number and the applicant's first
- * name are ever rendered — the DealerApplications collection is staff-only,
- * so nothing else is exposed publicly. The name travels in the query string
- * because the collection has no persisted reference column to look up.
+ * Post-submit landing. The reference is looked up server-side so the view
+ * survives a refresh, but only the reference and the applicant's first name
+ * are ever rendered — the DealerApplications collection is staff-only, so
+ * nothing else is exposed publicly.
  */
 export default async function TradeConfirmationPage({
   searchParams,
 }: PageProps<"/trade/confirmation">) {
-  const { ref, name } = await searchParams;
+  const { ref } = await searchParams;
   const reference = typeof ref === "string" && REFERENCE_PATTERN.test(ref) ? ref : null;
-  const rawName = typeof name === "string" && NAME_PATTERN.test(name) ? name : null;
-  const firstName = rawName?.trim().split(/\s+/)[0] ?? null;
+
+  let firstName: string | null = null;
+  if (reference) {
+    const payload = await getPayloadCached();
+    const { docs } = await payload.find({
+      collection: "dealer-applications",
+      where: { reference: { equals: reference } },
+      limit: 1,
+      depth: 0,
+    });
+    const application = docs[0];
+    if (application) {
+      firstName = application.firstName.trim() || null;
+    }
+  }
 
   return (
     <main className="flex-1 bg-background">

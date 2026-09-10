@@ -638,6 +638,7 @@ export interface Quote {
  */
 export interface DealerApplication {
   id: number;
+  reference: string;
   firstName: string;
   lastName: string;
   companyName: string;
@@ -687,6 +688,17 @@ export interface SampleRequest {
  */
 export interface Consultation {
   id: number;
+  source?:
+    | (
+        | 'website-quote'
+        | 'website-samples'
+        | 'website-consultation'
+        | 'website-custom-studio'
+        | 'phone'
+        | 'walk-in'
+        | 'other'
+      )
+    | null;
   type: 'phone' | 'video' | 'showroom' | 'site-visit';
   date: string;
   /**
@@ -1237,6 +1249,7 @@ export interface QuotesSelect<T extends boolean = true> {
  * via the `definition` "dealer-applications_select".
  */
 export interface DealerApplicationsSelect<T extends boolean = true> {
+  reference?: T;
   firstName?: T;
   lastName?: T;
   companyName?: T;
@@ -1286,6 +1299,7 @@ export interface SampleRequestsSelect<T extends boolean = true> {
  * via the `definition` "consultations_select".
  */
 export interface ConsultationsSelect<T extends boolean = true> {
+  source?: T;
   type?: T;
   date?: T;
   time?: T;

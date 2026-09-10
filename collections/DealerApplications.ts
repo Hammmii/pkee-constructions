@@ -1,9 +1,27 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
+
+import { dealerReferenceFromCount, TRADE_REFERENCE_PREFIX } from "@/lib/trade";
 
 import { isSalesStaff, publicCreateClosed, staffDeleteAccess } from "./access";
 
+const generateReference: CollectionBeforeChangeHook = async ({ data, req, operation }) => {
+  if (operation === "create" && !data.reference) {
+    const year = new Date().getFullYear();
+    const { totalDocs } = await req.payload.find({
+      collection: "dealer-applications",
+      where: { reference: { like: `${TRADE_REFERENCE_PREFIX}-${year}-%` } },
+      limit: 0,
+    });
+    data.reference = dealerReferenceFromCount(year, totalDocs);
+  }
+  return data;
+};
+
 export const DealerApplications: CollectionConfig = {
   slug: "dealer-applications",
+  hooks: {
+    beforeChange: [generateReference],
+  },
   admin: {
     useAsTitle: "companyName",
     defaultColumns: ["companyName", "businessType", "territory", "status", "updatedAt"],
@@ -17,6 +35,14 @@ export const DealerApplications: CollectionConfig = {
     delete: staffDeleteAccess,
   },
   fields: [
+    {
+      name: "reference",
+      type: "text",
+      unique: true,
+      index: true,
+      required: true,
+      admin: { readOnly: true },
+    },
     { name: "firstName", type: "text", required: true },
     { name: "lastName", type: "text", required: true },
     { name: "companyName", type: "text", required: true },

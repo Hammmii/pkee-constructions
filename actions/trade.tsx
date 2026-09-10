@@ -1,15 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import type { DataFromCollectionSlug } from "payload";
 import { TradeConfirmationEmail, type TradeSummaryRow } from "@/emails/TradeConfirmation";
 import { TradeNotificationEmail } from "@/emails/TradeNotification";
 import { sendEmail } from "@/lib/emails";
 import { getPayloadCached } from "@/lib/payload";
-import {
-  dealerReferenceFromCount,
-  isAcceptedTradeAttachment,
-  TRADE_ATTACHMENT_RULES,
-} from "@/lib/trade";
+import { isAcceptedTradeAttachment, TRADE_ATTACHMENT_RULES } from "@/lib/trade";
 import {
   BUSINESS_TYPE_LABELS,
   type TradeApplicationInput,
@@ -112,13 +109,10 @@ function buildSummaryRows(data: TradeApplicationInput, attachmentCount: number):
 
 /**
  * The dealer application pipeline. Order of operations: honeypot →
- * Turnstile → zod re-validation → attachments to media → reference sequence
- * → DealerApplications doc (status "new") → only then emails. Email failure
- * never blocks or rolls back the application.
- *
- * The collection has no persisted reference column, so the DA-YYYY-NNNN
- * sequence is derived from the year's document count and carried to the
- * confirmation page (and both emails) as a display token.
+ * Turnstile → zod re-validation → attachments to media →
+ * DealerApplications doc (status "new"; the collection's beforeChange hook
+ * generates the unique DA-YYYY-NNNN reference) → only then emails. Email
+ * failure never blocks or rolls back the application.
  */
 export async function submitTradeApplication(
   _prevState: TradeActionState,
@@ -151,22 +145,8 @@ export async function submitTradeApplication(
   const data = parsed.data;
 
   const payload = await getPayloadCached();
-  const year = new Date().getFullYear();
 
-  // 4. Sequence for DA-YYYY-NNNN from this year's application count.
-  const { totalDocs } = await payload.find({
-    collection: "dealer-applications",
-    where: {
-      and: [
-        { createdAt: { greater_than: new Date(`${year}-01-01`).toISOString() } },
-        { createdAt: { less_than: new Date(`${year + 1}-01-01`).toISOString() } },
-      ],
-    },
-    limit: 0,
-  });
-  const reference = dealerReferenceFromCount(year, totalDocs);
-
-  // 5. Attachments → media collection (validated again server-side).
+  // 4. Attachments → media collection (validated again server-side).
   const files = formData
     .getAll("attachments")
     .filter((entry): entry is File => entry instanceof File && entry.size > 0)
@@ -178,7 +158,7 @@ export async function submitTradeApplication(
       const buffer = Buffer.from(await file.arrayBuffer());
       const media = await payload.create({
         collection: "media",
-        data: { alt: `Dealer application attachment — ${reference}` },
+        data: { alt: `Dealer application attachment — ${data.companyName}` },
         file: {
           data: buffer,
           name: file.name || "attachment",
@@ -193,7 +173,9 @@ export async function submitTradeApplication(
     }
   }
 
-  // 6. Create the application — BEFORE any email attempt.
+  // 5. Create the application — BEFORE any email attempt. The beforeChange
+  // hook generates the unique reference; retry once on a unique race so the
+  // hook re-sequences.
   const applicationData = {
     firstName: data.firstName,
     lastName: data.lastName,
@@ -215,17 +197,31 @@ export async function submitTradeApplication(
     status: "new" as const,
   };
 
-  let application: { id: number } | null = null;
-  try {
-    application = await payload.create({
-      collection: "dealer-applications",
-      data: applicationData,
-    });
-  } catch (error) {
-    // biome-ignore lint/suspicious/noConsole: lead persistence failure must be loud.
-    console.error("[trade] failed to create dealer application:", error);
+  // Reference is required by the generated type but always supplied by the
+  // collection's beforeChange hook — never passed from the client.
+  let application: { id: number; reference: string } | null = null;
+  for (let attempt = 0; attempt < 2 && !application; attempt += 1) {
+    try {
+      application = await payload.create({
+        collection: "dealer-applications",
+        data: applicationData as unknown as DataFromCollectionSlug<"dealer-applications">,
+      });
+    } catch (error) {
+      // Unique-violation race on the hook-generated reference → retry once so
+      // the hook re-sequences; anything else is a real failure.
+      if (attempt === 0 && error instanceof Error && /unique|duplicate/i.test(error.message)) {
+        continue;
+      }
+      // biome-ignore lint/suspicious/noConsole: lead persistence failure must be loud.
+      console.error("[trade] failed to create dealer application:", error);
+      return { status: "error", errors: {}, formError: FORM_ERROR };
+    }
+  }
+
+  if (!application) {
     return { status: "error", errors: {}, formError: FORM_ERROR };
   }
+  const reference = application.reference;
 
   // 7. Emails — applicant confirmation + internal notification. Never throws.
   const rows = buildSummaryRows(data, documentIds.length);
@@ -263,6 +259,5 @@ export async function submitTradeApplication(
     });
   }
 
-  const firstName = encodeURIComponent(data.firstName);
-  redirect(`/trade/confirmation?ref=${reference}&name=${firstName}`);
+  redirect(`/trade/confirmation?ref=${reference}`);
 }
