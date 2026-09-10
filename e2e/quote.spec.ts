@@ -46,7 +46,8 @@ test("full quote flow: 7 steps, attachment, confirmation, lead in Payload", asyn
 
   // Step 3 — material (product select may be empty on an unseeded dev DB; it's optional)
   await page.getByLabel(/approximate quantity/i).fill("600");
-  await page.getByLabel(/^sq ft$/i).check();
+  // Unit toggle: the radio input is visually hidden inside a styled label.
+  await page.locator('label:has(input[name="material.unit"][value="sqft"])').click();
   await page.getByRole("button", { name: "Continue" }).click();
 
   // Step 4 — dimensions
