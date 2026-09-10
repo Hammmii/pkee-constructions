@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { TrackClick } from "@/components/analytics/TrackClick";
 import { Reveal } from "@/components/motion/Reveal";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { BeforeAfterSlider } from "@/components/ui/BeforeAfterSlider";
@@ -303,9 +304,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<Pa
             materials in this project.
           </p>
           <div className="mt-8">
-            <Button href={quoteHref} variant="solid" dark>
-              Request a quote
-            </Button>
+            <TrackClick event="get_this_look_click" source={slug} href={quoteHref}>
+              <Button href={quoteHref} variant="solid" dark>
+                Request a quote
+              </Button>
+            </TrackClick>
           </div>
         </section>
 

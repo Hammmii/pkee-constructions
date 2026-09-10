@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { TrackClick } from "@/components/analytics/TrackClick";
 import { ImageReveal } from "@/components/motion/ImageReveal";
 import { Reveal } from "@/components/motion/Reveal";
 import { SolutionAccordion } from "@/components/solutions/SolutionAccordion";
@@ -246,9 +247,11 @@ export default async function SolutionPage({ params }: Params) {
               Talk to our team about materials, finishes, and installation for your{" "}
               {solution.name.toLowerCase()} project.
             </p>
-            <Button href={quoteHref} dark className="mt-8">
-              Request a quote
-            </Button>
+            <TrackClick event="get_this_look_click" source={slug} href={quoteHref}>
+              <Button href={quoteHref} dark className="mt-8">
+                Request a quote
+              </Button>
+            </TrackClick>
           </div>
         </Container>
       </section>
