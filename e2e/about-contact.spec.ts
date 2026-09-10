@@ -35,9 +35,11 @@ test("about page renders 200 with story, people, timeline, values, and showroom 
 
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   // Showroom callout carries the real address from the site constants.
-  await expect(page.getByText(/360 Keewatin St, Winnipeg, MB/)).toBeVisible();
+  await expect(
+    page.locator("section", { has: page.getByRole("heading", { name: /see it installed/i }) }),
+  ).toContainText("360 Keewatin St, Winnipeg, MB");
   await expect(page.getByRole("heading", { name: /principals/i })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /story so far/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /from first delivery/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: /values/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: /see it installed/i })).toBeVisible();
 });
@@ -45,7 +47,7 @@ test("about page renders 200 with story, people, timeline, values, and showroom 
 test("contact form: fill + submit → ?sent=1, doc in Payload, cleanup", async ({ page }) => {
   await page.goto("/contact");
   await expect(page).toHaveTitle(/contact/i);
-  await expect(page.getByText(/360 Keewatin St, Winnipeg, MB/)).toBeVisible();
+  await expect(page.locator("address").first()).toContainText("360 Keewatin St, Winnipeg, MB");
 
   // Fill the form and submit.
   await page.getByLabel(/^name$/i).fill(SENDER.name);
