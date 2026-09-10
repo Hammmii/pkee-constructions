@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, MotionValue, motion, useMotionValueEvent, useSpring } from "motion/react";
+import { AnimatePresence, MotionValue, motion } from "motion/react";
 import Image from "next/image";
 import { type PointerEvent, type ReactNode, useEffect, useState } from "react";
 import { usePrefersReducedMotion } from "../motion/use-prefers-reduced-motion";
@@ -101,7 +101,6 @@ export function CursorPreview({ src, alt, children, className }: CursorPreviewPr
 }
 
 function PreviewLayer() {
-  const reduced = usePrefersReducedMotion();
   const [isLayer, setIsLayer] = useState(false);
   const [snap, setSnap] = useState(content);
 
@@ -122,12 +121,22 @@ function PreviewLayer() {
     };
   }, []);
 
-  const springX = useSpring(sharedX.get(), { stiffness: 180, damping: 15 });
-  const springY = useSpring(sharedY.get(), { stiffness: 180, damping: 15 });
-  useMotionValueEvent(sharedX, "change", (value) => springX.set(value));
-  useMotionValueEvent(sharedY, "change", (value) => springY.set(value));
-
+  // Single-child split: LayerSurface mounts exactly once per page, so exactly
+  // one spring per axis ever subscribes to the shared values. (Every card's
+  // PreviewLayer runs hooks; mounting the springs here — not in PreviewLayer —
+  // keeps them single-instance and unconditional.)
   if (!isLayer) return null;
+  return <LayerSurface snap={snap} />;
+}
+
+function LayerSurface({ snap }: { snap: typeof content }) {
+  const reduced = usePrefersReducedMotion();
+  // Bind the shared values DIRECTLY: the pointer handlers write them and
+  // motion mirrors MotionValues into style without any React render. A
+  // spring-smoothed variant was tried repeatedly (useSpring source-following,
+  // per-event .set, single/multiple instances) and motion v13 consistently
+  // dropped the first updates after mount — direct binding is the reliable
+  // path. Fade/scale entrance and the src crossfade stay animated.
 
   return (
     <AnimatePresence>
@@ -135,8 +144,9 @@ function PreviewLayer() {
         <motion.div
           key="cursor-preview"
           aria-hidden="true"
+          data-cursor-preview
           className="pointer-events-none fixed left-0 top-0 z-30"
-          style={{ x: springX, y: springY }}
+          style={{ x: sharedX, y: sharedY }}
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.96 }}
