@@ -29,6 +29,17 @@ if (!process.env.DATABASE_URL) {
 export default buildConfig({
   admin: {
     user: "users",
+    components: {
+      views: {
+        dashboard: {
+          Component: "/components/admin/dashboard#Dashboard",
+        },
+        pipeline: {
+          Component: "/components/admin/pipeline#PipelineView",
+          path: "/pipeline",
+        },
+      },
+    },
   },
   collections: [
     Users,
