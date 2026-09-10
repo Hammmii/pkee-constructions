@@ -82,6 +82,7 @@ export function HeaderClient({ categories }: HeaderClientProps) {
   }, []);
 
   // Any navigation settles all overlays.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname is the intended trigger; the effect body only resets state
   useEffect(() => {
     setMegaOpen(false);
     setMenuOpen(false);
@@ -143,8 +144,9 @@ export function HeaderClient({ categories }: HeaderClientProps) {
     }
   };
 
-  const onNavFocusOut = (event: ReactFocusEvent<HTMLUListElement>) => {
-    // Delay lets the mega-menu's own focus/blur logic settle first.
+  const onNavBlur = (event: ReactFocusEvent<HTMLUListElement>) => {
+    // React's onBlur bubbles (focusout semantics): when focus leaves the nav
+    // entirely, close the mega-menu unless focus landed inside its panel.
     if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
       setTimeout(() => {
         const panel = document.getElementById("mega-menu");
@@ -176,7 +178,7 @@ export function HeaderClient({ categories }: HeaderClientProps) {
 
           {/* Desktop nav */}
           <nav aria-label="Primary" className="hidden items-center gap-8 lg:flex">
-            <ul className="flex items-center gap-8" onFocusOut={onNavFocusOut}>
+            <ul className="flex items-center gap-8" onBlur={onNavBlur}>
               {navLinks.map((link) =>
                 link.href === "/products" ? (
                   <li
@@ -266,7 +268,6 @@ export function HeaderClient({ categories }: HeaderClientProps) {
           <MegaMenu
             open={megaOpen}
             categories={categories}
-            onEnter={megaScheduleOpen}
             onLeave={megaScheduleClose}
             onCancelLeave={megaCancel}
             onClose={closeMega}

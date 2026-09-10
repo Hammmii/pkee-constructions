@@ -16,7 +16,6 @@ type MegaMenuProps = {
   open: boolean;
   categories: MegaCategory[];
   /** Hover-intent callbacks owned by the header (trigger + panel share timers). */
-  onEnter: () => void;
   onLeave: () => void;
   onCancelLeave: () => void;
   /** Immediate close (Esc / link click) — the header returns focus to the trigger. */
@@ -35,14 +34,7 @@ type MegaMenuProps = {
  * panel keeps SSR output and focus behavior stable. Reduced-motion CSS
  * flushes the transition instantly.
  */
-export function MegaMenu({
-  open,
-  categories,
-  onEnter,
-  onLeave,
-  onCancelLeave,
-  onClose,
-}: MegaMenuProps) {
+export function MegaMenu({ open, categories, onLeave, onCancelLeave, onClose }: MegaMenuProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
   const focusables = () =>
@@ -106,10 +98,9 @@ export function MegaMenu({
   };
 
   return (
-    <div
+    <nav
       id="mega-menu"
       ref={panelRef}
-      role="group"
       aria-label="Product categories"
       data-lenis-prevent
       // inert keeps every closed-panel link out of the tab order.
@@ -175,6 +166,6 @@ export function MegaMenu({
           ))}
         </div>
       </div>
-    </div>
+    </nav>
   );
 }

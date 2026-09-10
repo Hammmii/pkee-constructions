@@ -70,6 +70,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
 
   // Focus the first link once the overlay is up (skip on reduced motion is
   // unnecessary — focus management is motion-independent).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: focusables reads live refs; `open` is the only real dependency
   useEffect(() => {
     if (open) {
       const id = requestAnimationFrame(() => focusables()[0]?.focus());

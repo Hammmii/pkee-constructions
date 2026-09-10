@@ -25,8 +25,8 @@ export function FooterView({ categories, year }: FooterViewProps) {
       <div className="mx-auto w-full max-w-[90rem] px-6 pb-10 pt-20 md:px-10 md:pt-28">
         {/* Big type — the closing editorial gesture. */}
         <h2 className="max-w-[12ch] text-[clamp(2.75rem,9vw,8.5rem)] font-medium uppercase leading-[0.95] tracking-[-0.02em] text-[color:var(--bone-on-ink)]">
-          Let&rsquo;s build{" "}
-          <em className="font-accent font-normal normal-case text-brass">your</em> space
+          Let&rsquo;s build <em className="font-accent font-normal normal-case text-brass">your</em>{" "}
+          space
         </h2>
 
         <div className="mt-16 grid grid-cols-12 gap-x-6 gap-y-12 border-t rule-on-dark pt-12 md:mt-24 md:pt-16">

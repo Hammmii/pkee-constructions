@@ -1,5 +1,5 @@
 import { getPayloadCached } from "@/lib/payload";
-import { FooterView, type FooterCategory } from "./FooterView";
+import { type FooterCategory, FooterView } from "./FooterView";
 
 /**
  * Global footer — supplies the top product categories from the CMS and the
