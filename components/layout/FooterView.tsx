@@ -53,6 +53,14 @@ export function FooterView({ categories, year }: FooterViewProps) {
                 {site.phone.display}
               </a>
               <a
+                href={site.whatsapp.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-[color:var(--bone-on-ink)] transition-colors duration-300 hover:text-brass"
+              >
+                WhatsApp {site.whatsapp.display}
+              </a>
+              <a
                 href={`mailto:${site.email}`}
                 className="block text-[color:var(--bone-on-ink)] transition-colors duration-300 hover:text-brass"
               >

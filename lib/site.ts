@@ -18,10 +18,14 @@ export const site = {
     province: "MB",
     country: "Canada",
   },
-  /** TODO-CLIENT: placeholder phone — replace with the confirmed number before launch. */
   phone: {
-    display: "(204) 555-0136",
-    href: "tel:+12045550136",
+    display: "(431) 788-3188",
+    href: "tel:+14317883188",
+  },
+  /** WhatsApp Business chat on the same number — primary quick-contact channel. */
+  whatsapp: {
+    display: "(431) 788-3188",
+    href: "https://wa.me/14317883188",
   },
   /** TODO-CLIENT: placeholder email — replace with the confirmed address before launch. */
   email: "hello@pkeeconstructions.ca",
