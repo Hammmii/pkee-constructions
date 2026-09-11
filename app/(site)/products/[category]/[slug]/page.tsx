@@ -161,7 +161,10 @@ export default async function ProductPage({ params }: PageProps<"/products/[cate
       {/* Gallery + info */}
       <Container className="py-10 md:py-14">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
-          <div className="lg:sticky lg:top-28 lg:self-start">
+          {/* Bottom offset on mobile so the sticky quote card / floating CTA
+              never covers the gallery thumbnail strip at any scroll position.
+              Desktop keeps its sticky-column behaviour untouched. */}
+          <div className="mb-24 lg:sticky lg:top-28 lg:mb-0 lg:self-start">
             <ProductGallery
               images={images}
               layoutIdPrefix={`product-${product.id}`}
