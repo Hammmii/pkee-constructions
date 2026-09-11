@@ -26,7 +26,8 @@ function filterQuery(type: string | undefined, room: string | undefined): string
   const params = new URLSearchParams();
   if (type) params.set("type", type);
   if (room) params.set("room", room);
-  return params.toString();
+  const query = params.toString();
+  return query ? `?${query}` : "";
 }
 
 export default async function ProjectsPage({ searchParams }: PageProps<"/projects">) {

@@ -237,30 +237,35 @@ export function QuoteWizard({
       </>
     );
     const isLeaving = mounted && leaving === index;
-    const isActive = !mounted || index === step;
-    const inner = reduced ? (
-      body
-    ) : isLeaving ? (
-      <motion.div
-        key="leaving"
-        initial={{ opacity: 1, x: 0 }}
-        animate={{ opacity: 0, x: -24 }}
-        transition={{ duration: STEP_S, ease: EXPO }}
-      >
-        {body}
-      </motion.div>
-    ) : isActive ? (
-      <motion.div
-        key={`active-${index}`}
-        initial={{ opacity: 0, x: 24 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: STEP_S, ease: EXPO }}
-      >
-        {body}
-      </motion.div>
-    ) : (
-      body
-    );
+    // SSR / no-JS must render plain, fully visible markup: a motion wrapper
+    // would ship initial={{ opacity: 0 }} in the HTML with no hydration to
+    // animate it, hiding the entire no-JS form (progressive-enhancement
+    // contract). Motion wrappers exist only post-mount (JS active).
+    const isActive = mounted && index === step;
+    const inner =
+      !mounted || reduced ? (
+        body
+      ) : isLeaving ? (
+        <motion.div
+          key="leaving"
+          initial={{ opacity: 1, x: 0 }}
+          animate={{ opacity: 0, x: -24 }}
+          transition={{ duration: STEP_S, ease: EXPO }}
+        >
+          {body}
+        </motion.div>
+      ) : isActive ? (
+        <motion.div
+          key={`active-${index}`}
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: STEP_S, ease: EXPO }}
+        >
+          {body}
+        </motion.div>
+      ) : (
+        body
+      );
     return (
       <fieldset
         key={index}

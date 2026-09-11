@@ -88,27 +88,34 @@ export function CraftProcess({ primary, secondary }: CraftProcessProps) {
           </div>
 
           <div className="col-span-12 flex flex-col gap-10 md:col-span-6 md:col-start-7">
-            {[primary, secondary].map(
-              (image, i) =>
-                image?.url && (
-                  <div key={image.url} className={i % 2 === 1 ? "md:mt-24" : ""}>
-                    <div className="relative aspect-[4/5] overflow-hidden md:aspect-[3/4]">
-                      <div
-                        data-parallax
-                        className="absolute -inset-y-[6%] inset-x-0 will-change-transform"
-                      >
-                        <Image
-                          src={image.url}
-                          alt={image.alt}
-                          fill
-                          sizes="(min-width: 768px) 45vw, 100vw"
-                          className="object-cover"
-                        />
+            {/* The same media asset can back both slides (project hero reused as
+                gallery image) — dedupe so React keys stay unique. */}
+            {[primary, secondary]
+              .filter(
+                (image, i, all) =>
+                  image?.url != null && all.findIndex((other) => other?.url === image.url) === i,
+              )
+              .map(
+                (image, i) =>
+                  image?.url && (
+                    <div key={image.url} className={i % 2 === 1 ? "md:mt-24" : ""}>
+                      <div className="relative aspect-[4/5] overflow-hidden md:aspect-[3/4]">
+                        <div
+                          data-parallax
+                          className="absolute -inset-y-[6%] inset-x-0 will-change-transform"
+                        >
+                          <Image
+                            src={image.url}
+                            alt={image.alt}
+                            fill
+                            sizes="(min-width: 768px) 45vw, 100vw"
+                            className="object-cover"
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ),
-            )}
+                  ),
+              )}
           </div>
         </div>
       </Container>
