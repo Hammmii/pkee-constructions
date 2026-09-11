@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { TrackClick } from "@/components/analytics/TrackClick";
 import {
   CapabilityGallery,
   type StudioCapability,
@@ -10,6 +11,8 @@ import { ImageReveal } from "@/components/motion/ImageReveal";
 import { ProjectBeforeAfter } from "@/components/projects/ProjectBeforeAfter";
 import { FALLBACK_BASE_MATERIALS } from "@/lib/customStudio";
 import { getPayloadCached } from "@/lib/payload";
+import { site, whatsappLink } from "@/lib/site";
+import { customStudioInquiryMessage } from "@/lib/whatsapp";
 import type { Media, Product, ProductCategory, Project } from "@/payload-types";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -332,6 +335,25 @@ export default async function CustomStudioPage() {
             Tell us the material, the finish, and the shape of the piece — attach a reference if you
             have one. Every request is reviewed by a person on the design team, and we respond
             within 2 business days. No pricing is published online; every custom piece is quoted.
+          </p>
+          <p className="mt-4 text-sm text-foreground/55">
+            Sketch not ready?{" "}
+            <TrackClick
+              event="whatsapp_click"
+              source="custom-studio"
+              href={whatsappLink(customStudioInquiryMessage())}
+            >
+              <a
+                href={whatsappLink(customStudioInquiryMessage())}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Chat with the ${site.name} Custom Studio on WhatsApp at ${site.whatsapp.display}`}
+                className="text-brass underline-offset-4 hover:underline"
+              >
+                Describe your idea on WhatsApp
+              </a>
+            </TrackClick>{" "}
+            — photos and voice notes welcome.
           </p>
 
           <div className="mt-12">

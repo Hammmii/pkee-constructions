@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import { TrackClick } from "@/components/analytics/TrackClick";
 import { SamplesForm } from "@/components/samples/SamplesForm";
 import type { SampleProductOption } from "@/components/samples/types";
 import { getPayloadCached } from "@/lib/payload";
+import { site, whatsappLink } from "@/lib/site";
+import { samplesRequestMessage } from "@/lib/whatsapp";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -51,6 +54,25 @@ export default async function SamplesPage({ searchParams }: PageProps<"/samples"
           Colour and finish read differently in your own light. Tell us what you are considering and
           we will send physical samples to your door — a specialist confirms every request within 2
           business days.
+        </p>
+        <p className="mt-4 text-sm text-foreground/55">
+          Not sure which to pick?{" "}
+          <TrackClick
+            event="whatsapp_click"
+            source="samples"
+            href={whatsappLink(samplesRequestMessage())}
+          >
+            <a
+              href={whatsappLink(samplesRequestMessage())}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Ask ${site.name} for sample suggestions on WhatsApp at ${site.whatsapp.display}`}
+              className="text-brass underline-offset-4 hover:underline"
+            >
+              Send us photos of your space on WhatsApp
+            </a>
+          </TrackClick>{" "}
+          and we&rsquo;ll suggest matches.
         </p>
 
         {preselectedProductId && (

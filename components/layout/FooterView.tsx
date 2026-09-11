@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { exploreLinks, site } from "@/lib/site";
+import { exploreLinks, site, whatsappLink } from "@/lib/site";
+import { genericInquiryMessage } from "@/lib/whatsapp";
 import { StaggerColumn } from "./FooterStagger";
 
 export type FooterCategory = {
@@ -53,12 +54,13 @@ export function FooterView({ categories, year }: FooterViewProps) {
                 {site.phone.display}
               </a>
               <a
-                href={site.whatsapp.href}
+                href={whatsappLink(genericInquiryMessage())}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label={`Chat with ${site.name} on WhatsApp at ${site.whatsapp.display}`}
                 className="block text-[color:var(--bone-on-ink)] transition-colors duration-300 hover:text-brass"
               >
-                WhatsApp {site.whatsapp.display}
+                Chat on WhatsApp {site.whatsapp.display}
               </a>
               <a
                 href={`mailto:${site.email}`}

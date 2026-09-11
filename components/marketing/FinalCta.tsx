@@ -2,6 +2,8 @@ import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Magnetic } from "@/components/ui/Magnetic";
+import { site, whatsappLink } from "@/lib/site";
+import { genericInquiryMessage } from "@/lib/whatsapp";
 
 /**
  * Closing beat before the layout footer: oversized type with the serif
@@ -30,6 +32,19 @@ export function FinalCta() {
             Start Your Project <span aria-hidden="true">→</span>
           </Button>
         </Magnetic>
+        <p className="mt-6 text-sm text-[color:var(--bone-dim)]">
+          Prefer chat?{" "}
+          <a
+            href={whatsappLink(genericInquiryMessage())}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Chat with ${site.name} on WhatsApp at ${site.whatsapp.display}`}
+            className="text-brass underline-offset-4 hover:underline"
+          >
+            Message us on WhatsApp
+          </a>{" "}
+          — a person replies within one business day.
+        </p>
         <p className="text-label mt-16 text-[color:var(--bone-dim)]">
           360 Keewatin St, Winnipeg, MB — Showroom consultations by appointment
         </p>

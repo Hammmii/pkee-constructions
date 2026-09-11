@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { TrackClick } from "@/components/analytics/TrackClick";
 import { TradeApplication } from "@/components/trade/TradeApplication";
 import { SpecRow } from "@/components/ui/SpecRow";
+import { site, whatsappLink } from "@/lib/site";
+import { tradeInquiryMessage } from "@/lib/whatsapp";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -54,6 +57,25 @@ export default function TradePage() {
           materials from 360 Keewatin St, Winnipeg. Our dealer program gives trade partners the
           range, pricing, and stock priority to win wall and ceiling projects — apply below and our
           trade team responds within 2 business days.
+        </p>
+        <p className="mt-4 text-sm text-foreground/55">
+          Questions first?{" "}
+          <TrackClick
+            event="whatsapp_click"
+            source="trade"
+            href={whatsappLink(tradeInquiryMessage())}
+          >
+            <a
+              href={whatsappLink(tradeInquiryMessage())}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Chat with the ${site.name} trade desk on WhatsApp at ${site.whatsapp.display}`}
+              className="text-brass underline-offset-4 hover:underline"
+            >
+              Chat with our trade desk on WhatsApp
+            </a>
+          </TrackClick>{" "}
+          — replies within one business day.
         </p>
       </section>
 

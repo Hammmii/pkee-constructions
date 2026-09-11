@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Track } from "@/components/analytics/Track";
+import { TrackClick } from "@/components/analytics/TrackClick";
 import { QuoteWizard } from "@/components/quote/QuoteWizard";
 import type { CategoryOption, PreselectedProduct, ProductOption } from "@/components/quote/types";
 import { getPayloadCached } from "@/lib/payload";
+import { site, whatsappLink } from "@/lib/site";
+import { quoteStartMessage } from "@/lib/whatsapp";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -71,6 +74,25 @@ export default async function QuotePage({ searchParams }: PageProps<"/quote">) {
         <p className="mt-4 max-w-xl text-foreground/60">
           Seven short steps — the more you tell us, the sharper the quote. No prices are published
           online; every request gets a specialist&rsquo;s answer within 2 business days.
+        </p>
+        <p className="mt-4 text-sm text-foreground/55">
+          Prefer chat? No account needed —{" "}
+          <TrackClick
+            event="whatsapp_click"
+            source="quote"
+            href={whatsappLink(quoteStartMessage())}
+          >
+            <a
+              href={whatsappLink(quoteStartMessage())}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Start a WhatsApp quote chat with ${site.name} at ${site.whatsapp.display}`}
+              className="text-brass underline-offset-4 hover:underline"
+            >
+              start your quote on WhatsApp
+            </a>
+          </TrackClick>{" "}
+          and we&rsquo;ll reply within one business day.
         </p>
 
         {preselected && (

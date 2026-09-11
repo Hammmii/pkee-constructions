@@ -5,7 +5,8 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { type KeyboardEvent as ReactKeyboardEvent, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
-import { navLinks, quoteCta, site } from "@/lib/site";
+import { navLinks, quoteCta, site, whatsappLink } from "@/lib/site";
+import { genericInquiryMessage } from "@/lib/whatsapp";
 import { useMounted, usePrefersReducedMotion } from "../motion/use-prefers-reduced-motion";
 
 const EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1]; // --ease-out-expo
@@ -148,12 +149,13 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
                   {site.phone.display}
                 </a>
                 <a
-                  href={site.whatsapp.href}
+                  href={whatsappLink(genericInquiryMessage())}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={`Chat with ${site.name} on WhatsApp at ${site.whatsapp.display}`}
                   className="block text-[color:var(--bone-on-ink)] transition-colors duration-300 hover:text-brass"
                 >
-                  WhatsApp {site.whatsapp.display}
+                  Chat on WhatsApp {site.whatsapp.display}
                 </a>
                 <a
                   href={`mailto:${site.email}`}

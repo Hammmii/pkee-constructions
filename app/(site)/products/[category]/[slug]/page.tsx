@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Track } from "@/components/analytics/Track";
+import { TrackClick } from "@/components/analytics/TrackClick";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
@@ -18,6 +19,8 @@ import {
 } from "@/lib/queries/products";
 import { breadcrumbJsonLd, JsonLd, mediaAbsoluteUrl, productJsonLd } from "@/lib/seo/JsonLd";
 import { buildMetadata } from "@/lib/seo/metadata";
+import { site, whatsappLink } from "@/lib/site";
+import { productInquiryMessage } from "@/lib/whatsapp";
 import type { Media, Product } from "@/payload-types";
 import { FinishSwatches } from "./_components/FinishSwatches";
 import { ProductGallery } from "./_components/ProductGallery";
@@ -251,6 +254,24 @@ export default async function ProductPage({ params }: PageProps<"/products/[cate
               <p className="mt-4 mb-0 text-xs leading-relaxed text-ink/45">
                 No public pricing — every material is scoped to your dimensions, finish and
                 installation. Showroom: 360 Keewatin St, Winnipeg.
+              </p>
+              <p className="mt-3 text-xs text-ink/55">
+                <TrackClick
+                  event="whatsapp_click"
+                  source={`product:${product.slug}`}
+                  href={whatsappLink(productInquiryMessage({ name: product.name }))}
+                >
+                  <a
+                    href={whatsappLink(productInquiryMessage({ name: product.name }))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Ask about ${product.name} on WhatsApp at ${site.whatsapp.display}`}
+                    className="text-brass underline-offset-4 hover:underline"
+                  >
+                    Ask about this material on WhatsApp
+                  </a>
+                </TrackClick>{" "}
+                — replies within one business day.
               </p>
             </div>
           </div>
