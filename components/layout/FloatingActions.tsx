@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { quoteCta, site, whatsappLink } from "@/lib/site";
 import { genericInquiryMessage } from "@/lib/whatsapp";
 import { WhatsAppFab } from "./WhatsAppFab";
@@ -8,21 +11,35 @@ import { WhatsAppFab } from "./WhatsAppFab";
  * with a pre-filled WhatsApp chat as the middle cell (R2.2d). Hidden on
  * desktop (`md:hidden`), where {@link WhatsAppFab} is the single floating
  * WhatsApp entry; the root layout adds a matching spacer so the bar never
- * obscures the footer's bottom line.
+ * obscures the footer's bottom line. While already on the quote route the
+ * Quote cell renders as a marked "current" cell instead of a redundant
+ * self-link. Scroll clearance for the fixed bar lives in globals.css
+ * (`scroll-padding-bottom` under the mobile breakpoint only).
  */
 export function FloatingActions() {
+  const pathname = usePathname();
   const whatsappHref = whatsappLink(genericInquiryMessage());
+  const onQuoteRoute = pathname === quoteCta.href;
   return (
     <>
       <WhatsAppFab />
       <div className="fixed inset-x-0 bottom-0 z-40 md:hidden">
         <div className="grid grid-cols-3 border-t rule bg-bone/95 backdrop-blur-md">
-          <Link
-            href={quoteCta.href}
-            className="flex h-16 items-center justify-center bg-ink text-[0.8125rem] font-medium uppercase tracking-[0.12em] text-bone transition-colors duration-300 hover:text-brass"
-          >
-            Get a Quote
-          </Link>
+          {onQuoteRoute ? (
+            <span
+              aria-current="page"
+              className="flex h-16 items-center justify-center bg-ink/85 text-[0.8125rem] font-medium uppercase tracking-[0.12em] text-bone/50"
+            >
+              Get a Quote
+            </span>
+          ) : (
+            <Link
+              href={quoteCta.href}
+              className="flex h-16 items-center justify-center bg-ink text-[0.8125rem] font-medium uppercase tracking-[0.12em] text-bone transition-colors duration-300 hover:text-brass"
+            >
+              Get a Quote
+            </Link>
+          )}
           <a
             href={whatsappHref}
             target="_blank"
