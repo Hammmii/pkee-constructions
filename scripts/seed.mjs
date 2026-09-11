@@ -278,7 +278,7 @@ const categorySeeds = [
       "Can PVC panels be used behind a fireplace?",
     ],
     seo: {
-      metaTitle: "PVC Wall Panels Winnipeg | PKEE Constructions",
+      metaTitle: "PVC Wall Panels Winnipeg",
       metaDescription:
         "Premium waterproof PVC wall panels — marble, woodgrain, fluted. Supply, fabrication, and installation in Winnipeg. Visit 360 Keewatin St.",
     },
@@ -472,7 +472,7 @@ for (const cat of categorySeeds) {
     applications: cat.applications ?? [],
     faqs: (cat.faqs ?? []).map((q) => faqIds[q]).filter(Boolean),
     seo: cat.seo ?? {
-      metaTitle: `${cat.name} Winnipeg | PKEE Constructions`,
+      metaTitle: `${cat.name} Winnipeg`,
       metaDescription: `${cat.name} supplied, fabricated, and installed by PKEE Constructions, Winnipeg. 360 Keewatin St.`,
     },
   });
@@ -508,7 +508,7 @@ const productSeeds = [
     backlit: false,
     customizable: false,
     seo: {
-      metaTitle: "Classic Marble PVC Wall Panel | PKEE Constructions",
+      metaTitle: "Classic Marble PVC Wall Panel",
       metaDescription:
         "Waterproof marble-look PVC wall panels, supplied and installed in Winnipeg. Grout-free bathroom walls in a day.",
     },
@@ -934,7 +934,7 @@ for (const p of productSeeds) {
     relatedProducts: related,
     featured: p.featured ?? false,
     placeholderMedia: true,
-    seo: p.seo ?? { metaTitle: `${p.name} | PKEE Constructions`, metaDescription: p.summary },
+    seo: p.seo ?? { metaTitle: p.name, metaDescription: p.summary },
     _status: "published",
   });
 }
@@ -1081,7 +1081,7 @@ for (const s of solutionSeeds) {
     recommendedProducts: s.products.map((p) => productIds[p]).filter(Boolean),
     faqs: [faqIds["How do I get a quote?"]].filter(Boolean),
     seo: {
-      metaTitle: `${s.name} Design Ideas & Materials Winnipeg | PKEE Constructions`,
+      metaTitle: `${s.name} Design Ideas & Materials Winnipeg`,
       metaDescription: s.intro,
     },
     _status: "published",
