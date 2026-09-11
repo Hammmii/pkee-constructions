@@ -1,0 +1,33 @@
+name: migrate
+
+# Applies pending Payload migrations (payload migrate) against the production
+# (Supabase) database. Idempotent — safe to re-run. Never seeds.
+#
+# Triggered manually (workflow_dispatch) or after a Vercel production deploy
+# (repository_dispatch sent by Vercel "Deploy Hooks"/a post-deploy script).
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [vercel-production-deploy]
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Apply pending Payload migrations
+        run: npm run payload migrate
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
+      - name: Verify no migrations pending
+        run: npm run payload migrate:status
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}

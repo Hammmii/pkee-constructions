@@ -14,6 +14,17 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     qualities: [70, 75, 85],
+    remotePatterns: [
+      // Supabase Storage public URLs (storage.<region>.<project>.supabase.co)
+      { protocol: "https", hostname: "*.supabase.co" },
+      // S3/Supabase S3-compat endpoint host if media URLs derive from it
+      ...(process.env.S3_PUBLIC_URL
+        ? [new URL(process.env.S3_PUBLIC_URL).hostname].map((hostname) => ({
+            protocol: "https" as const,
+            hostname,
+          }))
+        : []),
+    ],
   },
 };
 

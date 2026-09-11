@@ -4,6 +4,7 @@
  * Usage: node scripts/seed.mjs
  *
  * - Refuses to run with NODE_ENV=production.
+ * - Refuses to run against a non-local DATABASE_URL unless ALLOW_PROD_SEED=1.
  * - Loads .env via dotenv (DATABASE_URL, PAYLOAD_SECRET required).
  * - Generates warm-neutral SVG placeholder images locally (no network),
  *   rasterizes them with sharp, uploads to the Media collection, and flags
@@ -35,6 +36,23 @@ try {
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set (check .env).");
   process.exit(1);
+}
+
+// Guard against overwriting a production database: refuse to run unless the
+// DATABASE_URL host is localhost/127.0.0.1, or ALLOW_PROD_SEED=1 is set
+// explicitly (one-off re-seed against a remote/prod DB — see F-3 in
+// qa/prod-admin-report.md).
+{
+  const host = new URL(process.env.DATABASE_URL).hostname;
+  const isLocal = ["localhost", "127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(host);
+  if (!isLocal && process.env.ALLOW_PROD_SEED !== "1") {
+    console.error(
+      `Refusing to seed non-local database (host: ${host}).\n` +
+        "This would overwrite content in a remote/production database.\n" +
+        "If you really intend to re-seed it, re-run with ALLOW_PROD_SEED=1.",
+    );
+    process.exit(1);
+  }
 }
 
 const { createJiti } = await import("jiti");

@@ -17,7 +17,8 @@ npm run payload migrate     # create schema
 npm run dev                 # starts embedded DB (if not running) + Next dev on :3000
 ```
 
-Seeding (dev/staging only, refuses to run with NODE_ENV=production):
+Seeding (dev/staging only, refuses to run with NODE_ENV=production and
+refuses a non-local DATABASE_URL unless ALLOW_PROD_SEED=1):
 
 ```bash
 node scripts/seed.mjs   # idempotent; generates its own placeholder media
@@ -52,10 +53,18 @@ Vercel deploys `main` on every push. Before pointing the real domain at it:
       Never commit `.env`.
 - [ ] Run `npm run payload migrate` against the production database (one-off,
       or wired as a release step).
-- [ ] Media storage: uploads currently go to the local disk, which is
-      ephemeral on Vercel. Wire a Payload S3 storage adapter and set the
-      `S3_*` env vars (reserved in `.env.example`) before accepting CMS
-      uploads in production.
+- [ ] Media storage: media is served from **Supabase Storage** via
+      `@payloadcms/storage-s3` (wired in `payload.config.ts` for the `media`
+      collection only). Set the `S3_*` env vars from `.env.example`
+      (`S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`,
+      `S3_ENDPOINT` = `https://<project-ref>.supabase.co/storage/v1/s3`,
+      `S3_REGION`). When `S3_BUCKET` is unset, Payload logs a boot warning
+      and media falls back to the local disk (local dev/CI only).
+      **After switching, re-run the seed against the production DB
+      (`ALLOW_PROD_SEED=1 node scripts/seed.mjs`)** — or re-upload — so media
+      rows are re-created with S3 URLs; then verify `GET /api/media/file/...`
+      and `/_next/image` return 200. The Supabase host is already allowlisted
+      in `next.config.ts` `images.remotePatterns`.
 - [ ] Cloudflare Turnstile: create a site key pair and add the production
       domain to the widget's allowed hostnames. Still recommended on
       production — leads are stored in Payload and handed off via the
