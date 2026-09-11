@@ -76,6 +76,16 @@ html {
   scroll-behavior: normal; /* Lenis owns smoothing; never double up */
 }
 
+/* The mobile conversion bar (FloatingActions, md:hidden, h-16 fixed) must
+   never sit on top of a focused/anchored field: keep the scrollport's
+   bottom edge a bar's height above the viewport's. Desktop is unchanged
+   (the bar doesn't render there), so no double-gap with the footer spacer. */
+@media (max-width: 767px) {
+  html {
+    scroll-padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
