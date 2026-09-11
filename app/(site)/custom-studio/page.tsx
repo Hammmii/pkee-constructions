@@ -7,9 +7,10 @@ import {
 } from "@/components/custom-studio/CapabilityGallery";
 import { CustomStudioWizard } from "@/components/custom-studio/CustomStudioWizard";
 import { ImageReveal } from "@/components/motion/ImageReveal";
+import { ProjectBeforeAfter } from "@/components/projects/ProjectBeforeAfter";
 import { FALLBACK_BASE_MATERIALS } from "@/lib/customStudio";
 import { getPayloadCached } from "@/lib/payload";
-import type { Media, Product, ProductCategory } from "@/payload-types";
+import type { Media, Product, ProductCategory, Project } from "@/payload-types";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -147,6 +148,29 @@ async function getCapabilities(): Promise<StudioCapability[]> {
   });
 }
 
+/** One published project with a real before/after pair — drives the transformation slider. */
+async function findBeforeAfterProject(): Promise<Project | null> {
+  try {
+    const payload = await getPayloadCached();
+    const { docs } = await payload.find({
+      collection: "projects",
+      where: {
+        and: [
+          { _status: { equals: "published" } },
+          { beforeImage: { exists: true } },
+          { afterImage: { exists: true } },
+        ],
+      },
+      limit: 1,
+      depth: 1,
+      overrideAccess: false,
+    });
+    return (docs[0] as Project | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function JsonLd() {
   const jsonLd = {
     "@context": "https://schema.org",
@@ -198,10 +222,14 @@ function JsonLd() {
 }
 
 export default async function CustomStudioPage() {
-  const [capabilities, materials] = await Promise.all([getCapabilities(), listBaseMaterials()]);
+  const [capabilities, materials, beforeAfterProject] = await Promise.all([
+    getCapabilities(),
+    listBaseMaterials(),
+    findBeforeAfterProject(),
+  ]);
 
   return (
-    <main className="flex-1 bg-background">
+    <div className="flex-1 bg-background">
       <JsonLd />
 
       {/* Editorial hero */}
@@ -274,6 +302,25 @@ export default async function CustomStudioPage() {
         </div>
       </section>
 
+      {/* Raw wall → finished feature wall (skipped when no seeded pair) */}
+      {beforeAfterProject ? (
+        <ProjectBeforeAfter
+          project={{
+            title: beforeAfterProject.title,
+            slug: beforeAfterProject.slug,
+            location: beforeAfterProject.location,
+            beforeImage:
+              typeof beforeAfterProject.beforeImage === "object"
+                ? beforeAfterProject.beforeImage
+                : null,
+            afterImage:
+              typeof beforeAfterProject.afterImage === "object"
+                ? beforeAfterProject.afterImage
+                : null,
+          }}
+        />
+      ) : null}
+
       {/* Upload wizard */}
       <section id="upload" className="border-t rule scroll-mt-24">
         <div className="mx-auto w-full max-w-3xl px-6 py-20 md:px-10 md:py-28">
@@ -312,6 +359,6 @@ export default async function CustomStudioPage() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

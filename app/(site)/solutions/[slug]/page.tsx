@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { TrackClick } from "@/components/analytics/TrackClick";
 import { ImageReveal } from "@/components/motion/ImageReveal";
 import { Reveal } from "@/components/motion/Reveal";
+import { ProjectBeforeAfter } from "@/components/projects/ProjectBeforeAfter";
 import { SolutionAccordion } from "@/components/solutions/SolutionAccordion";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
@@ -103,6 +104,16 @@ export default async function SolutionPage({ params }: Params) {
 
   const firstProduct = recommended[0];
   const quoteHref = firstProduct?.slug ? `/quote?product=${firstProduct.slug}` : "/quote";
+
+  const beforeAfterProject = projects.find((project) => {
+    const { beforeImage, afterImage } = project;
+    return (
+      typeof beforeImage === "object" &&
+      beforeImage?.url &&
+      typeof afterImage === "object" &&
+      afterImage?.url
+    );
+  });
 
   return (
     <>
@@ -234,6 +245,25 @@ export default async function SolutionPage({ params }: Params) {
             </div>
           </Container>
         </section>
+      ) : null}
+
+      {/* Before & after (skipped when no project in this space has a pair) */}
+      {beforeAfterProject ? (
+        <ProjectBeforeAfter
+          project={{
+            title: beforeAfterProject.title,
+            slug: beforeAfterProject.slug,
+            location: beforeAfterProject.location,
+            beforeImage:
+              typeof beforeAfterProject.beforeImage === "object"
+                ? beforeAfterProject.beforeImage
+                : null,
+            afterImage:
+              typeof beforeAfterProject.afterImage === "object"
+                ? beforeAfterProject.afterImage
+                : null,
+          }}
+        />
       ) : null}
 
       {/* Get this look */}
