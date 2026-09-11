@@ -2,6 +2,15 @@ import "dotenv/config";
 
 import { expect, test } from "@playwright/test";
 
+// KNOWN PRODUCT BUG (not test infra, app code is off-limits): the quote
+// wizard drops staged attachments on submit — the file input lives in a
+// `hidden` fieldset (step 6) while the review step (7) is active, and hidden
+// fieldsets disable their controls, so the useActionState FormData never
+// includes the files. The created quote has attachments: [] and leadScore 75
+// instead of 90 (missing the +15 attachment score). Until the app moves the
+// input out of the hidden fieldset (or mirrors staged files into the review
+// step), the assertions below at "Lead landed in Payload" fail.
+//
 // Verify the lead landed in Payload via the local API (same env as the dev
 // server: .env provides DATABASE_URL + PGPASSWORD). Shared keyed client —
 // never destroys Payload, only deletes the docs this spec created.
@@ -28,6 +37,9 @@ test.afterAll(async () => {
 test("full quote flow: 7 steps, attachment, confirmation, lead in Payload", async ({ page }) => {
   await page.goto("/quote");
   await expect(page).toHaveTitle(/quote/i);
+  // Gate on hydration before filling (step headings render post-mount) — a
+  // pre-hydration fill of a controlled field gets wiped by React's mount.
+  await expect(page.getByRole("heading", { name: /first, how do we reach you/i })).toBeVisible();
 
   // Step 1 — customer
   await page.getByLabel(/full name/i).fill(LEAD.name);

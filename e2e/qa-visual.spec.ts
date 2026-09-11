@@ -36,10 +36,7 @@ test("visual smoke screenshots", async ({ browser }) => {
       await page.goto(route.path, { waitUntil: "networkidle" });
       // Hide the dev-only hydration overlay noise by waiting a beat for fonts.
       await page.waitForTimeout(400);
-      const file = new URL(
-        `../qa/screenshots/${viewport.tag}-${route.name}.png`,
-        import.meta.url,
-      );
+      const file = new URL(`../qa/screenshots/${viewport.tag}-${route.name}.png`, import.meta.url);
       await page.screenshot({ path: file.pathname, fullPage: true });
       expect(true).toBe(true);
     }

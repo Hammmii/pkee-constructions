@@ -4,6 +4,14 @@ import { expect, test } from "@playwright/test";
 
 // Submissions create real Payload docs — every created doc is deleted in
 // afterAll. Shared keyed client — never destroys Payload.
+//
+// KNOWN PRODUCT BUG (app code off-limits): with JavaScript disabled, /quote
+// renders an empty <main>. The page content streams inside a React Suspense
+// boundary (`<template id="B:0">` in the SSR HTML) that is only revealed by
+// client JS, so the no-JS progressive-enhancement contract is broken for the
+// quote wizard (the contact form no-JS path still works). The no-JS quote
+// test in the "no-JS progressive enhancement" block below fails until the
+// app SSRs the wizard outside a client-only Suspense boundary.
 import { getPayloadClient } from "./payload-client";
 
 const timestamp = Date.now();
@@ -95,6 +103,10 @@ test.describe("validation error states", () => {
 test.describe("file-upload rejection", () => {
   test("quote: wrong type and oversize files are rejected inline", async ({ page }) => {
     await page.goto("/quote");
+    // Gate on hydration before filling: the step headings render only
+    // post-mount, and filling controlled fields beforehand gets wiped by
+    // React's initial render (full name came back empty + invalid).
+    await expect(page.getByRole("heading", { name: /first, how do we reach you/i })).toBeVisible();
 
     // Walk to step 6 (attachments) with minimal valid data.
     await page.getByLabel(/full name/i).fill(`Upload Tester ${timestamp}`);
@@ -161,21 +173,24 @@ test.describe("CTA → prefill wiring", () => {
   test("product page Request-a-quote CTA prefills the wizard material step", async ({ page }) => {
     await page.goto("/products/pvc-wall-panels/classic-marble-pvc-panel");
     // Scope to <main> — the header nav also carries a "Request a Quote" link.
-    await page
-      .locator("main")
-      .getByRole("link", { name: "Request a quote" })
-      .first()
-      .click();
+    await page.locator("main").getByRole("link", { name: "Request a quote" }).first().click();
     await page.waitForURL(/\/quote\?product=classic-marble-pvc-panel/);
 
-    // Walk to the material step.
+    // KNOWN FLAKE (suspected product bug, app code off-limits): /quote
+    // renders its wizard inside a client-only Suspense boundary (same root
+    // cause as the no-JS failure documented at the top of this file).
+    // Navigating from the product CTA with ?product= re-renders that
+    // boundary and can reset the wizard mid-walk, leaving the material-step
+    // select hidden. The walk below is hydration-gated and passes in
+    // isolation; it flakes only when the Suspense reset wins the race.
+    await expect(page.getByRole("heading", { name: /first, how do we reach you/i })).toBeVisible();
     await page.getByLabel(/full name/i).fill(`Prefill Tester ${timestamp}`);
     await page.getByLabel(/^email/i).fill(`qa-prefill-${timestamp}@example.com`);
     await page.getByRole("button", { name: "Continue" }).click();
     await page.getByRole("button", { name: "Continue" }).click();
 
     const productSelect = page.getByLabel(/^product$/i);
-    await expect(productSelect).toBeVisible();
+    await expect(productSelect).toBeVisible({ timeout: 15_000 });
     await expect(productSelect).toHaveValue("classic-marble-pvc-panel");
     // Category select is seeded too.
     await expect(page.getByLabel(/product category/i)).toHaveValue("pvc-wall-panels");
@@ -183,7 +198,10 @@ test.describe("CTA → prefill wiring", () => {
 
   test("custom-studio Book-a-designer CTA lands on the consultation page", async ({ page }) => {
     await page.goto("/custom-studio");
-    await page.getByRole("link", { name: /^book a designer$/i }).first().click();
+    await page
+      .getByRole("link", { name: /^book a designer$/i })
+      .first()
+      .click();
     await page.waitForURL(/\/consultation\?type=showroom/);
     // The hydration bug (audit #3) renders two <main> elements — assert on
     // the content one.

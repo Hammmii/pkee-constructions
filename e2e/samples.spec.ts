@@ -82,6 +82,10 @@ test("full samples flow: 3 steps, confirmation, request in Payload", async ({ pa
 
   await page.goto("/samples");
   await expect(page).toHaveTitle(/sample/i);
+  // Gate on hydration: the stepped UI mounts after hydration (the no-JS form
+  // has no "Continue"), and filling controlled fields before mount gets the
+  // values wiped by React's initial render — leaving step 1 invalid.
+  await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
 
   // Step 1 — samples
   await page.getByLabel(/^product$/i).selectOption({ label: productName });

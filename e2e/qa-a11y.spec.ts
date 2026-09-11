@@ -43,7 +43,10 @@ async function contrastAll(page: import("@playwright/test").Page, selector: stri
           const bl = -0.0041960863 * l_ - 0.7034186147 * m_ + 1.707614701 * s_;
           return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
         }
-        const parts = value.match(/\d+(\.\d+)?/g)?.slice(0, 3).map(Number) ?? [0, 0, 0];
+        const parts = value
+          .match(/\d+(\.\d+)?/g)
+          ?.slice(0, 3)
+          .map(Number) ?? [0, 0, 0];
         const [r = 0, g = 0, b = 0] = parts;
         const f = (x: number) => {
           const s = x / 255;
@@ -100,7 +103,12 @@ test("home: document structure, alt text, focus visibility, contrast", async ({ 
   await page.goto("/");
 
   const h1s = await page.getByRole("heading", { level: 1 }).count();
-  row({ page: "/", check: "exactly one h1", status: h1s === 1 ? "pass" : "fail", detail: `found ${h1s}` });
+  row({
+    page: "/",
+    check: "exactly one h1",
+    status: h1s === 1 ? "pass" : "fail",
+    detail: `found ${h1s}`,
+  });
 
   const imgs = page.locator("main img");
   const total = await imgs.count();
@@ -174,10 +182,14 @@ test("product detail: h1, radiogroup label, lightbox dialog", async ({ page }) =
     page: "product detail",
     check: "finish swatches are a labelled radiogroup",
     status: swatchCount > 0 ? "pass" : "note",
-    detail: swatchCount > 0 ? "radiogroup[aria-label=Finishes] present" : "no swatch group rendered",
+    detail:
+      swatchCount > 0 ? "radiogroup[aria-label=Finishes] present" : "no swatch group rendered",
   });
 
-  await page.getByRole("button", { name: /open image viewer/i }).first().click();
+  await page
+    .getByRole("button", { name: /open image viewer/i })
+    .first()
+    .click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   const labelled = await dialog.getAttribute("aria-label");
@@ -205,7 +217,12 @@ test("category FAQ accordion state is exposed", async ({ page }) => {
   await page.goto("/products/pvc-wall-panels");
   const summary = page.locator("details summary").first();
   if ((await page.locator("details summary").count()) === 0) {
-    row({ page: "category", check: "FAQ accordion", status: "note", detail: "no details elements" });
+    row({
+      page: "category",
+      check: "FAQ accordion",
+      status: "note",
+      detail: "no details elements",
+    });
     return;
   }
   const details = page.locator("details").first();
@@ -234,6 +251,9 @@ test("category FAQ accordion state is exposed", async ({ page }) => {
 
 test("quote: every visible input has an accessible label", async ({ page }) => {
   await page.goto("/quote");
+  // Let the streamed shell settle before counting — an immediate count can
+  // land mid-stream before the h1 has been parsed into the DOM.
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
   // Single in-page evaluation avoids stale locator counts while the wizard
   // hydrates. Considers wrapping <label>, htmlFor, aria-label/labelledby.
   const unlabelled = await page.evaluate(() => {
@@ -262,7 +282,9 @@ test("quote: every visible input has an accessible label", async ({ page }) => {
     page: "/quote",
     check: "all visible inputs labelled",
     status: unlabelled.length === 0 ? "pass" : "fail",
-    detail: unlabelled.length ? `unlabelled: ${unlabelled.join(", ")}` : "all visible inputs labelled",
+    detail: unlabelled.length
+      ? `unlabelled: ${unlabelled.join(", ")}`
+      : "all visible inputs labelled",
   });
 
   const h1s = await page.getByRole("heading", { level: 1 }).count();
