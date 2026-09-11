@@ -256,6 +256,215 @@ highest risk; only after all P0/P1 green and Lighthouse ≥ 90 holds.
 
 Everything else is zero-new-dependency.
 
+---
+
+# ROUND 2 (R2) — 2026 premium patterns research
+
+Second research pass (Sept 2026). Sources: [Next.js 16 App Router View
+Transitions guide](https://nextjs.org/docs/app/guides/view-transitions) (Aug
+2026), [React 19.2 `<ViewTransition>` reference](https://react.dev/reference/react/ViewTransition),
+[MDN View Transition API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API/Using),
+[Chrome View Transitions primer](https://developer.chrome.com/docs/web-platform/view-transitions),
+Awwwards 2025–2026 interior/material nominees, and 2025–2026 WhatsApp
+Business / click-to-chat conversion literature. Completed R1 items (P0.1–P0.6,
+P1.2–P1.4) are excluded — this is a fresh list.
+
+**Context change since R1:** the site moved from email handoff to
+**WhatsApp-first lead handoff** (`site.whatsapp` in `lib/site.ts`, mobile
+sticky bar in `components/layout/FloatingActions.tsx`, quote emails now
+position WhatsApp as the follow-up channel). R2 priorities reflect that.
+
+## R2-P0 — ship first
+
+### R2.1 React 19.2 `<ViewTransition>` migration (replaces/supersedes P1.1 experiment)
+- **What/where:** `components/motion/PageTransition.tsx` +
+  `components/catalog/ProductLightbox.tsx` + card→PDP path.
+- **Why now:** Next 16's App Router uses React canary with stable
+  `<ViewTransition>`; **no flag, no config needed** (verified against the
+  Next.js VT guide and React docs). The R1 "experimental flag" caveat is gone.
+  Four production recipes now documented by Vercel:
+  1. **Shared-element morph** — named `<ViewTransition name={...}>` on product
+     card image + PDP hero; browser animates position/size. Card→PDP morph is
+     the exact "thumbnail → hero" example in the official guide.
+  2. **Suspense reveal handoff** — skeleton exits fast (150ms slide-down +
+     fade), content enters slower (400ms slide-up, 210ms fade delayed until
+     exit completes). Replaces flat skeleton swap; pairs with R1 P0.4 skeletons.
+  3. **Directional navigation** — `<Link transitionTypes={['nav-forward']}>` /
+     `nav-back`, 60px slide offset; header pinned via `viewTransitionName` +
+     `display: none` on old snapshot. Drop the ink-wipe for intra-catalog
+     navigation; keep it only as the no-support fallback (VT is progressive —
+     unsupported browsers just don't animate, per MDN).
+  4. **Same-route crossfade** — `key={slug}` + `share="auto"` for PDP
+     gallery/tab swaps.
+- **Critical gotchas (from React docs):** (a) wrap pages in the **page, not
+  the layout** — enter/exit never fire in layouts; (b) `default="none"` on
+  every named pair or unrelated transitions will crossfade them; (c) exit/
+  enter only fire if `<ViewTransition>` is the first node in its tree; (d)
+  names must be globally unique (`pkee-product-${slug}`); (e) browser back/
+  button navigations carry no transition type — morph still works, slide
+  doesn't; (f) `::view-transition { pointer-events: none }` so clicks aren't
+  swallowed mid-transition; (g) VT waits up to 500ms for fonts/images — keeps
+  PDP morph flicker-free.
+- **Deps:** none (React 19.2 ships with Next 16).
+- **Perf:** snapshots are compositor-side; VT start ~10–20ms; cheaper than
+  AnimatePresence full-tree remount. No LCP impact (hero stays plain
+  `next/image`). **INP watch:** pause the ink-wipe AnimatePresence entirely
+  when VT runs — never both systems on one navigation.
+- **Reduced motion:** `animation-duration: 1ms` (or none) inside
+  `@media (prefers-reduced-motion: reduce)` targeting
+  `::view-transition-group(*)` — React does **not** auto-disable VT.
+- **Effort: M.**
+
+### R2.2 WhatsApp-first lead UX (see dedicated section below — P0.2–P0.4 inside it)
+
+### R2.3 Text-fill image reveal (kinetic typography, signature home moment)
+- **What/where:** one hero-adjacent statement section on the homepage (e.g.
+  "Surfaces that outlast trends" behind/inside giant display type) — new
+  `components/marketing/TypeFillSection.tsx`.
+- **Technique:** oversized Neue Montreal/Editorial display line where the
+  letters are a mask (`background-clip: text`) revealing a slow-panning
+  material texture; on scroll, a second pass fills the text with ink as the
+  texture recedes (IntersectionObserver-scrubbed CSS custom property on
+  `clip-path` — *not* a scroll-linked paint). This is the 2025–2026 Awwwards
+  interior-site signature (kinetic type + material imagery).
+- **Perf:** `background-clip: text` + transform-only scrub; one image, one
+  compositor animation. **Never** per-letter DOM splits with individual
+  springs (that pattern is the #1 INP killer on this family of effects).
+- **Reduced motion:** static filled text over the texture, no scrub.
+- **Effort: M.**
+
+### R2.4 Quote confirmation → WhatsApp deep-link bridge
+- **What/where:** `app/(site)/quote/confirmation/page.tsx` (+ trade/custom-
+  studio/samples confirmations).
+- **Technique:** after submit, the confirmation page becomes a
+  *next-step launcher*: (a) expectation-setting header ("We've received your
+  project details — our team replies on WhatsApp within one business day"),
+  (b) a **prefilled `wa.me` deep link** carrying a templated message ("Hi
+  PKEE, I just submitted a quote request for {category} — reference {id}")
+  so the thread opens with context, (c) copy-reference button, (d) brass
+  progress-style "What happens next" 3-step strip (received → team reviews →
+  WhatsApp reply). Progressive enhancement: link is a plain `<a>`, works
+  no-JS.
+- **Deps:** none.
+- **Perf:** zero (static page + one anchor).
+- **Reduced motion:** n/a.
+- **Effort: S.**
+
+## R2-P1 — strong differentiators
+
+### R2.5 Bento editorial grid on homepage "Featured Materials"
+- **What/where:** `components/marketing/FeaturedMaterials.tsx`.
+- **Technique:** asymmetric bento (2 large + 2–3 small cells, CSS grid) with
+  per-cell hover: image zoom (existing 1.05 recipe) + brass rule + spec-row
+  teaser reveal. Editorial rhythm differentiates from the uniform card grid
+  without new deps. Keep cell count CMS-driven (empty cells collapse).
+- **Perf:** grid layout shift risk — reserve aspect-ratio boxes to keep CLS 0.
+- **Reduced motion:** zoom off, rule draw only.
+- **Effort: M.**
+
+### R2.6 Scroll-driven before/after video-still "process" sequence
+- **What/where:** `components/marketing/CraftProcess.tsx`.
+- **Technique:** lightweight upgrade of the existing pinned section: instead
+  of a scrubbed horizontal pin, use scroll-driven **frame-stepping** across a
+  preloaded burst of stills (install sequence) or a `<video>` with
+  `requestVideoFrameCallback`-driven `currentTime` scrub (no audio, muted,
+  `preload="metadata"` + poster). Scroll-scrubbed *video* is the 2026 premium
+  upgrade of the 2024 pinned-horizontal pattern — but only at 720p-max,
+  ≤2.5MB, and **only on the one signature section** (per motion spec "one
+  pinned section" rule, which this replaces rather than adds to).
+- **Perf/INP:** video scrub is the watch item — throttle to rAF, step at
+  ~8fps equivalence, disable on `(pointer: coarse)` + reduced motion (show
+  static 3-up stills instead).
+- **Effort: M–L. Defer until R2.1 lands.**
+
+### R2.7 PDP "installed look" morph gallery (VT share, not lightbox)
+- **What/where:** PDP gallery (`app/(site)/products/[category]/[slug]/`).
+- **Technique:** thumbnails and main image are named `<ViewTransition>` pairs
+  (`default="none" share="cross-fade"`); clicking a thumb crossfades in place
+  with `key={img.id}` (same-route crossfade recipe) instead of opening the
+  lightbox. Lightbox stays for zoom/detail. Same-route crossfades read as
+  "same place, different content" — correct semantic per Vercel guide.
+- **Perf:** compositor crossfade; no JS springs.
+- **Reduced motion:** instant swap.
+- **Effort: S–M (builds on R2.1).**
+
+### R2.8 Contextual WhatsApp entry points in catalog flow
+- **What/where:** PDP CTA cluster + quote wizard step 1.
+- **Technique:** secondary "Ask about this material on WhatsApp" text-link
+  beside the primary quote CTA, with **prefilled wa.me text naming the
+  product slug** (`?text=Hi PKEE, question about {product.name} ({sku})`).
+  Chat-first microcopy ("Prefer chat? Send us photos of your space and we'll
+  suggest matches."). One per page max — WhatsApp entries must never compete
+  with the primary quote CTA visually (text-link, not button).
+- **Perf:** zero. **Effort: S.**
+
+## R2 — WhatsApp-first lead UX (dedicated section)
+
+The handoff moved email → WhatsApp; the UX hasn't caught up. 2025–2026
+click-to-WhatsApp conversion research is consistent on four patterns:
+
+1. **R2.2a Floating WhatsApp prominence, done tastefully (P0).**
+   Current: mobile-only bar segment (`FloatingActions.tsx`) + footer link.
+   Gaps: (a) no **desktop** persistent entry — add a single floating
+   action button bottom-right on desktop (`(pointer: fine)` only), brass
+   hairline circle, label appears on hover, `aria-label` set, dismissible
+   per-session; (b) mobile bar's middle cell is the *only* WhatsApp entry —
+   make PDP/trade pages show a WhatsApp-preferred variant of the bar when
+   `quoteCta` context isn't present. Rules: max **one** floating WhatsApp
+   element per viewport; never overlays the LCP or the sticky bar; respects
+   `scroll-margin` so it never covers focused content.
+2. **R2.2b Post-submit expectation setting (P0, = R2.4).** The #1 cause of
+   WhatsApp-handoff drop-off is silence anxiety: users don't know a human
+   will message them, or when. Every confirmation page must state channel
+   ("We'll reply on WhatsApp"), timeframe ("within one business day"), and
+   offer the deep-link bridge so impatient/high-intent users open the thread
+   *themselves* immediately (this also primes the business number in the
+   user's WhatsApp, dramatically improving reply-open rates).
+3. **R2.2c Chat-first microcopy (P0, copy-level).** Shift tone on conversion
+   surfaces from form-letter to chat-register: button labels
+   ("Send my request" → fine), helper text ("No account needed — we reply on
+   WhatsApp."), trade page ("Questions first? Chat with our trade desk."),
+   and quote step intros. Never promise instant bot replies we don't staff;
+   never invent phone numbers or response SLAs beyond what's in `lib/site.ts`.
+4. **R2.2d Prefilled-context wa.me links everywhere (P0).** Every WhatsApp
+   anchor site-wide should carry a `?text=` template with page/product/
+   reference context (URL-encoded, built server-side). Research shows
+   prefilled threads convert ~2–3× better than bare `wa.me` links because
+   the first message is already "started." Central builder in `lib/site.ts`:
+   `whatsappLink(context: string): string`.
+- **Accessibility:** every WhatsApp anchor has an accessible name including
+  the destination number; the FAB is a real `<a>`, keyboard-focusable, visible
+  focus ring; no `target=_blank` without `rel="noopener"`.
+- **Reduced motion:** n/a (static affordances).
+- **Effort: S–M across all four.**
+
+## R2 — evaluated and rejected/deferred (with reasons)
+
+| Pattern | Verdict | Why |
+|---|---|---|
+| **WebGL/shader hero** (noise/liquid brass shaders) | **Reject** | Motion spec §8 already bans canvas/shader heroes — LCP must stay a plain `<img>`. Even as post-LCP ambient layer: ~150–400KB three.js + shader compile jank on mid-range mobile for a *materials* brand whose luxury signal is photographic fidelity. A well-lit photo beats a shader for panels/stone every time. |
+| **3D product viewer (R3F)** | **Keep deferred** (was P2.5) | Material panels are flat, repeating-texture products — a 3D orbit adds little over good photography + before/after. Revisit only for Custom Studio joint/pattern preview, post-M11. |
+| **Tactile sound design** | **Reject** | A11y: autoplay audio and surprise sound violate WCAG-adjacent expectations; muted-by-default sound is dead weight. Premium silence > gimmick. |
+| **Adaptive/dark luxury theme** | **Reject for now** | Bone/ink is the brand; a dark variant doubles token/QA surface and risks muddying the brass accent. Revisit only if real user research asks. |
+| **AI personalization ("recommended for your project")** | **Reject for now** | Cold-start showroom with no behavioral data; rule-based "pairs with / completes the look" CMS relations give 80% of the perceived intelligence at 0% of the privacy/weight cost. |
+| **Conversational/one-question-at-a-time forms** | **Reject** | The multi-step wizard already exists (P0.5 shipped); chat-form hybrids break progressive enhancement and hurt completion for high-attachment quote flows. |
+| **OTP-less auth / passkeys** | **N/A** | No accounts on the site. |
+| **Mobile gesture interactions** (swipe-between PDPs, pull-to-reveal) | **Defer (P2)** | Native-feel swipe between products is nice but collides with horizontal galleries; revisit after R2.1 VT (browser-back swipe already works). Pull-to-refresh is non-standard on web — reject. |
+| **Marquee innovations** (velocity blur, direction reverse) | **P2 addition** | R1 P2.2 velocity-skew shipped as the marquee upgrade; 2026 add-on: direction-linked reverse on scroll-back, ≤ ±4° skew cap stays. **Effort: S.** |
+| **Image-to-text fill** | **Adopted as R2.3** | See above. |
+
+## R2 dependency summary
+
+| Dep | New? | Used by |
+|---|---|---|
+| React 19.2 `<ViewTransition>` | platform (ships with Next 16 canary) | R2.1, R2.7 |
+| `lib/site.ts` `whatsappLink()` helper | internal | R2.2, R2.4, R2.8 |
+| Video asset for R2.6 | CMS/media | R2.6 |
+
+Everything else: zero-new-dependency.
+
+---
+
 ## Global guardrails (apply to every item)
 
 - Animate only `transform | opacity | filter | clip-path`; overlay blur < 10px.

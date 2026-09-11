@@ -91,10 +91,10 @@ Keep the current **dark overlay wipe + content crossfade** via Motion
 - Total choreographed time ≤ 600ms. `initial={false}` on first load.
 - Reduced motion: no transition.
 
-**Experiment (P1.1):** Next 16 View Transitions (`experimental.viewTransition`,
-`transitionType` on `<Link>`) for card → PDP shared-element morphs, with the
-wipe as the feature-detected fallback. Do not run both systems on the same
-navigation; VT wins when supported.
+**R2 (shipped direction):** React 19.2 `<ViewTransition>` is stable in
+Next 16 (no flag) — migrate intra-catalog navigation to the §9 recipes;
+the ink wipe becomes the feature-detected fallback only. Do not run both
+systems on the same navigation; VT wins when supported.
 
 ## 7. Marquee
 
@@ -120,3 +120,50 @@ skew (≤ ±4°) optional and reduced-motion off.
   never run an infinite loop that isn't paused off-screen.
 - Never ship an animation that leaves content invisible if JS/hydration
   fails — SSR output is the final state.
+
+## 9. View Transition recipes (R2, M11)
+
+React 19.2 `<ViewTransition>` (ships with Next 16, no flag) is the preferred
+system for route/shared-element motion; the ink-wipe (`§6`) remains the
+fallback for unsupported browsers and non-navigation reveals. Never run both
+on the same navigation.
+
+- **Shared-element morph (card → PDP hero, lightbox):** named pair
+  `<ViewTransition name="pkee-product-{slug}" default="none" share="morph">`
+  on both sides. No CSS needed for the default morph; optional mid-flight
+  `filter: blur(4px)` keyframe (never > 6px, never on the final state) to
+  hide interpolation artifacts. 400ms total — slow enough to register, fast
+  enough to feel direct (per Next.js VT guide).
+- **Loading handoff (skeleton → content):** asymmetric timing —
+  skeleton exit 150ms slide-down + fade; content enter 400ms slide-up with
+  the fade at 210ms **delayed until the exit completes**. Old content leaves
+  fast, new content arrives gently.
+- **Directional navigation:** `<Link transitionTypes={["nav-forward"]}>`
+  ("nav-back" for returns), 60px slide offset, 300–400ms
+  `--ease-out-expo`. Fixed header gets a `view-transition-name`, old header
+  snapshot `display: none`, `z-index` above sliding content — the header
+  never moves. Browser back/forward carries no type: no slide, morph still
+  applies.
+- **Same-route crossfade (gallery tabs, thumbnails):** `key={activeSlug}` +
+  `share="auto"` — crossfade means "same place, different content"; never
+  use a directional slide for in-place swaps.
+- **Overlay:** `::view-transition { pointer-events: none; }` so clicks pass
+  through; keep transitions short since named participants stay click-locked.
+- **Reduced motion:** `@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*) { animation-duration: 1ms; } }` — React does
+  **not** auto-disable VT. VT morphs/crossfades may keep opacity fades under
+  reduced motion; directional slides must not run.
+
+## 10. R2 additions to existing rules
+
+- **Kinetic type fill (§4 add):** text-fill image reveals use
+  `background-clip: text` + a transform-only scrubbed `clip-path` on ONE
+  wrapper. Per-letter spring splits are banned (INP). 800–1000ms expo, fires
+  once, SSR shows the final filled state.
+- **Video scrub (§4 add, R2.6 only):** scroll-driven `currentTime` via
+  `requestVideoFrameCallback`, throttled to rAF, muted, ≤720p/≤2.5MB, one
+  section site-wide; reduced motion/coarse pointer → static stills.
+- **WhatsApp FAB (§3 add):** floating actions animate with Micro tier only
+  (scale 0.96 tap, 200ms label fade); entrance after 1.2s delay, max once
+  per session, never auto-repeats (no infinite/looping attention motion on
+  conversion chrome).
