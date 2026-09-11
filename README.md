@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PKEE Constructions — Website
 
-## Getting Started
+Marketing + catalog site for PKEE Constructions (360 Keewatin St, Winnipeg, MB) —
+premium decorative building materials. Built with **Next.js 16 (App Router) ·
+TypeScript strict · Tailwind v4 · Payload CMS 3 · Postgres · Resend**. Not
+ecommerce: every conversion flows into quote / consultation / trade application.
 
-First, run the development server:
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env        # fill in values (never commit .env)
+npm run db:start            # embedded project-local Postgres (scripts/db.mjs)
+npm run payload migrate     # create schema
+npm run dev                 # starts embedded DB (if not running) + Next dev on :3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Seeding (dev/staging only, refuses to run with NODE_ENV=production):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+node scripts/seed.mjs   # idempotent; generates its own placeholder media
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Then open `http://localhost:3000/admin` and log in. (If seeded media
+binaries are missing in a fresh checkout, re-run the seed.)
 
-## Learn More
+## Commands
 
-To learn more about Next.js, take a look at the following resources:
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Embedded DB + Next dev server |
+| `npm run build` / `npm start` | Production build / serve |
+| `npm run db:start` / `db:stop` / `db:status` | Embedded Postgres control |
+| `npm run payload migrate` | Apply Payload/Postgres migrations |
+| `npm run generate:types` | Regenerate `payload-types.ts` |
+| `npm run check` | Biome + `tsc --noEmit` (quality gate) |
+| `npm test` | Vitest unit tests |
+| `npm run test:e2e` | Playwright money-path tests |
+| `node qa/check-links.mts` | Full-site link/route audit (dev server on :3000) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Going to production (Vercel)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Vercel deploys `main` on every push. Before pointing the real domain at it:
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [ ] Set env vars in the Vercel project: `DATABASE_URL` (hosted Postgres,
+      e.g. Neon/Supabase), `PAYLOAD_SECRET`, `PAYLOAD_PUBLIC_SERVER_URL`
+      (the production URL), `NEXT_PUBLIC_SITE_URL`, `RESEND_API_KEY`,
+      `LEADS_NOTIFICATION_EMAIL`, `PUBLIC_CONTACT_EMAIL`,
+      `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`,
+      and `NEXT_PUBLIC_ANALYTICS_ID` (optional — no-op when unset).
+      Never commit `.env`.
+- [ ] Run `npm run payload migrate` against the production database (one-off,
+      or wired as a release step).
+- [ ] Media storage: uploads currently go to the local disk, which is
+      ephemeral on Vercel. Wire a Payload S3 storage adapter and set the
+      `S3_*` env vars (reserved in `.env.example`) before accepting CMS
+      uploads in production.
+- [ ] Cloudflare Turnstile: create a site key pair and add the production
+      domain to the widget's allowed hostnames.
+- [ ] Resend: verify the sending domain and update the from/notification
+      addresses.
+- [ ] Attach the custom domain and confirm `https` + `NEXT_PUBLIC_SITE_URL`
+      match (metadata/OG tags use it).
