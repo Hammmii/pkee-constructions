@@ -88,3 +88,35 @@ test("contact form: fill + submit → ?sent=1, doc in Payload, cleanup", async (
   expect(message.subject).toBe("General question");
   expect(message.message).toBe(SENDER.message);
 });
+
+test("chat-first WhatsApp entries carry prefilled context (R2.2c/d)", async ({ page }) => {
+  await page.goto("/contact");
+
+  // Primary chat CTA on the contact page — prefilled generic context.
+  const chatCta = page.locator("main").getByRole("link", {
+    name: /chat with pkee constructions on whatsapp at/i,
+  });
+  await expect(chatCta).toBeVisible();
+  const contactHref = (await chatCta.getAttribute("href")) ?? "";
+  expect(contactHref).toContain("https://wa.me/14317883188");
+  expect(decodeURIComponent(contactHref)).toContain("Hi PKEE Constructions!");
+
+  // Footer contact link is chat-first too.
+  const footer = page.locator("footer");
+  await expect(
+    footer.getByRole("link", { name: /chat with pkee constructions on whatsapp at/i }),
+  ).toBeVisible();
+
+  // Desktop floating action (hidden below md) — real link, accessible name
+  // carries the destination number.
+  const fab = page.locator("a.fixed");
+  await expect(fab).toBeVisible();
+  expect(await fab.getAttribute("href")).toContain("https://wa.me/14317883188");
+
+  // Product page: the material-specific entry names the product.
+  await page.goto("/products/pvc-wall-panels/classic-marble-pvc-panel");
+  const ask = page.getByRole("link", { name: /ask about .* on whatsapp at/i });
+  await expect(ask).toBeVisible();
+  const askHref = (await ask.getAttribute("href")) ?? "";
+  expect(decodeURIComponent(askHref).toLowerCase()).toContain("classic marble pvc wall panel");
+});
