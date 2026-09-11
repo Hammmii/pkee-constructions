@@ -12,6 +12,9 @@ export const site = {
   name: "PKEE Constructions",
   legalName: "PKEE Constructions",
   tagline: "Premium decorative building materials",
+  /** Brand-level fallback description for pages without CMS SEO copy. */
+  description:
+    "Premium decorative building materials — PVC wall panels, decor sheets, faux stone, louver & 3D panels, and custom fabrication, supplied and installed from 360 Keewatin St, Winnipeg, MB.",
   address: {
     street: "360 Keewatin St",
     city: "Winnipeg",

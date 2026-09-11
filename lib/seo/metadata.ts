@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 
 /**
- * Absolute site URL. `NEXT_PUBLIC_SITE_URL` in production; localhost fallback
- * for dev/sitemap generation. Never invent a public origin.
+ * Absolute site URL. `NEXT_PUBLIC_SITE_URL` in production; falls back to the
+ * public origin so sitemaps/canonicals are never emitted with a dev host.
+ * Never invent a public origin.
  */
 export function getBaseUrl(): string {
   const raw = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!raw) return "http://localhost:3000";
+  if (!raw) return "https://www.pkeeconstructions.ca";
   return raw.replace(/\/$/, "");
 }
 

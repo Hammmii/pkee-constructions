@@ -63,7 +63,9 @@ export const seoField: Field = {
   name: "seo",
   type: "group",
   fields: [
-    { name: "metaTitle", type: "text", maxLength: 70 },
+    // 75 (not 70): full-brand titles like "PKEE Constructions — Decorative
+    // Wall Panels & Custom Interiors, Winnipeg" (72 chars) must fit.
+    { name: "metaTitle", type: "text", maxLength: 75 },
     { name: "metaDescription", type: "textarea", maxLength: 160 },
     { name: "ogImage", type: "upload", relationTo: "media" },
   ],

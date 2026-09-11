@@ -25,6 +25,8 @@ import { TradeBand } from "@/components/marketing/TradeBand";
 import { VisualizerPromo } from "@/components/marketing/VisualizerPromo";
 import { WhyChooseUs } from "@/components/marketing/WhyChooseUs";
 import { getPayloadCached } from "@/lib/payload";
+import { absoluteUrl } from "@/lib/seo/metadata";
+import { site } from "@/lib/site";
 import type { Media, Page } from "@/payload-types";
 
 export default async function Home() {
@@ -71,11 +73,47 @@ export default async function Home() {
 
 export async function generateMetadata(): Promise<Metadata> {
   const home = await findHomePage();
+
+  // Brand-level fallbacks (lib/site.ts) keep <title>/description/OG valid even
+  // when the CMS `home` doc or its SEO group is missing. `absolute` opts out
+  // of the root "%s — PKEE Constructions" template because both the CMS
+  // metaTitle and the fallback already carry the brand name.
+  const title = home?.seo?.metaTitle ?? HOME_SEO.title;
+  const description = home?.seo?.metaDescription ?? site.description;
+  const heroImage = (() => {
+    const hero = home?.blocks?.find((b) => b.blockType === "hero");
+    const img = hero && "image" in hero ? hero.image : null;
+    return typeof img === "object" ? (img?.url ?? null) : null;
+  })();
+  const ogImage =
+    (typeof home?.seo?.ogImage === "object" ? (home.seo.ogImage?.url ?? null) : null) ?? heroImage;
+
   return {
-    title: home?.seo?.metaTitle ?? undefined,
-    description: home?.seo?.metaDescription ?? undefined,
+    title: { absolute: title },
+    description,
+    alternates: { canonical: absoluteUrl("/") },
+    openGraph: {
+      title,
+      description,
+      url: absoluteUrl("/"),
+      siteName: site.name,
+      type: "website",
+      locale: "en_CA",
+      ...(ogImage ? { images: [{ url: absoluteUrl(ogImage) }] } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(ogImage ? { images: [absoluteUrl(ogImage)] } : {}),
+    },
   };
 }
+
+/** Fallback home SEO when the CMS doc has none — mirrors the seed copy. */
+const HOME_SEO = {
+  title: "PKEE Constructions — Decorative Wall Panels & Custom Interiors, Winnipeg",
+} as const;
 
 // ---------------------------------------------------------------------------
 // data
@@ -102,7 +140,10 @@ async function findHomePage(): Promise<Page | null> {
       where: { slug: { equals: "home" } },
       limit: 1,
       depth: 1,
-      overrideAccess: false,
+      // Server-only local API call — the Pages collection locks public read
+      // to staff, so the frontend must bypass access control here (same
+      // pattern the collection comment documents).
+      overrideAccess: true,
     });
     const doc = res.docs[0];
     return doc ?? null;

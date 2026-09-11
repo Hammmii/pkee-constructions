@@ -103,7 +103,9 @@ test.describe("file-upload rejection", () => {
     for (let i = 0; i < 4; i++) {
       await page.getByRole("button", { name: "Continue" }).click();
     }
-    await expect(page.getByLabel(/choose files/i)).toBeVisible();
+    // The file input itself is sr-only (visually hidden inside the dropzone
+    // label), so assert on the visible dropzone text instead of the input.
+    await expect(page.getByText("Choose files")).toBeVisible();
 
     // Wrong type.
     await page.getByLabel(/choose files/i).setInputFiles({

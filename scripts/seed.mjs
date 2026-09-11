@@ -38,7 +38,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 const { createJiti } = await import("jiti");
-const jiti = createJiti(import.meta.url);
+const jiti = createJiti(import.meta.url, { tsconfigPaths: true });
 // payload.config.ts uses extensionless relative imports, which Node's native
 // TS stripping cannot resolve — jiti handles it.
 const { default: config } = await jiti.import(path.join(rootDir, "payload.config.ts"));
@@ -1340,10 +1340,13 @@ await upsert("pages", "slug", "home", {
       buttonHref: "/quote",
     },
   ],
+  // TODO-CLIENT: placeholder SEO copy — replace with the confirmed final
+  // home-page title/description before launch.
   seo: {
-    metaTitle: "PKEE Constructions | Premium Decorative Building Materials Winnipeg",
+    metaTitle: "PKEE Constructions — Decorative Wall Panels & Custom Interiors, Winnipeg",
     metaDescription:
-      "PVC wall panels, decor sheets, stone, and custom fabrication. Supply + install at 360 Keewatin St, Winnipeg. Request a quote today.",
+      "Premium PVC wall panels, stone, louver & 3D decor, custom fabrication and installation. Visit the showroom at 360 Keewatin St, Winnipeg, or request a quote.",
+    ogImage: homeHeroId,
   },
   _status: "published",
 });

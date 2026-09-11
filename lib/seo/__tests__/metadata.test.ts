@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { absoluteUrl, buildMetadata, getBaseUrl } from "../metadata";
 
 describe("getBaseUrl", () => {
-  it("falls back to localhost when NEXT_PUBLIC_SITE_URL is unset", () => {
-    expect(getBaseUrl()).toBe("http://localhost:3000");
+  it("falls back to the public origin when NEXT_PUBLIC_SITE_URL is unset", () => {
+    expect(getBaseUrl()).toBe("https://www.pkeeconstructions.ca");
   });
 });
 
@@ -13,8 +13,8 @@ describe("absoluteUrl", () => {
   });
 
   it("joins relative paths to the base URL", () => {
-    expect(absoluteUrl("/products")).toBe("http://localhost:3000/products");
-    expect(absoluteUrl("products")).toBe("http://localhost:3000/products");
+    expect(absoluteUrl("/products")).toBe("https://www.pkeeconstructions.ca/products");
+    expect(absoluteUrl("products")).toBe("https://www.pkeeconstructions.ca/products");
   });
 });
 
@@ -25,8 +25,8 @@ describe("buildMetadata", () => {
       description: "Browse materials.",
       path: "/products",
     });
-    expect(meta.alternates?.canonical).toBe("http://localhost:3000/products");
-    expect(meta.openGraph?.url).toBe("http://localhost:3000/products");
+    expect(meta.alternates?.canonical).toBe("https://www.pkeeconstructions.ca/products");
+    expect(meta.openGraph?.url).toBe("https://www.pkeeconstructions.ca/products");
     expect(meta.openGraph?.siteName).toBe("PKEE Constructions");
     expect(meta.title).toBe("Material Library");
   });
@@ -46,9 +46,11 @@ describe("buildMetadata", () => {
       image: "/api/media/file/hero.png",
     });
     expect(meta.openGraph?.images).toEqual([
-      { url: "http://localhost:3000/api/media/file/hero.png" },
+      { url: "https://www.pkeeconstructions.ca/api/media/file/hero.png" },
     ]);
-    expect(meta.twitter?.images).toEqual(["http://localhost:3000/api/media/file/hero.png"]);
+    expect(meta.twitter?.images).toEqual([
+      "https://www.pkeeconstructions.ca/api/media/file/hero.png",
+    ]);
   });
 
   it("omits the image keys when no image is given", () => {
