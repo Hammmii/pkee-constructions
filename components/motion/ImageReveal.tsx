@@ -30,7 +30,7 @@ export function ImageReveal({ children, className, innerClassName }: ImageReveal
   if (!animate) {
     return (
       <div className={cn("relative overflow-hidden", className)}>
-        <div className={cn("relative h-full w-full", innerClassName)}>{children}</div>
+        <div className={cn("relative h-full w-full bg-ink/5", innerClassName)}>{children}</div>
       </div>
     );
   }
@@ -44,7 +44,7 @@ export function ImageReveal({ children, className, innerClassName }: ImageReveal
       transition={{ duration: 1.1, ease: EXPO }}
     >
       <motion.div
-        className={cn("relative h-full w-full will-change-transform", innerClassName)}
+        className={cn("relative h-full w-full bg-ink/5 will-change-transform", innerClassName)}
         initial={{ scale: 1.15 }}
         whileInView={{ scale: 1 }}
         viewport={{ once: true, margin: "0px 0px -10% 0px" }}
