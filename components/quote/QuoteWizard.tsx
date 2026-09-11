@@ -7,7 +7,7 @@ import { useFormStatus } from "react-dom";
 import { type FieldPath, FormProvider, type Resolver, useForm } from "react-hook-form";
 import { type QuoteActionState, submitQuote } from "@/actions/quote";
 import { usePrefersReducedMotion } from "@/components/motion/use-prefers-reduced-motion";
-import { QUOTE_STEPS } from "@/lib/quote";
+import { QUOTE_ATTACHMENT_RULES, QUOTE_STEPS } from "@/lib/quote";
 import { cn } from "@/lib/utils";
 import { type QuoteFormInput, quoteSchema } from "@/lib/validators/quote";
 import { HoneypotField } from "./HoneypotField";
@@ -120,13 +120,16 @@ type QuoteWizardProps = {
  * the same DOM becomes a stepped wizard: non-active fieldsets are hidden,
  * per-step zod validation gates "Continue", and state survives back/forward.
  *
- * Every fieldset STAYS MOUNTED at all times (hidden inputs must remain in
- * the FormData for the server action) — so the step transition animates the
- * active fieldset in (x: 24 → 0) while the outgoing one, parked absolutely
- * for one transition duration (x → −24, opacity → 0), is then hidden. That
- * keeps one layout footprint and full progressive enhancement. Reduced
- * motion swaps steps instantly, exactly like the pre-hydration behavior.
- * Presentation only — no form logic changes.
+ * Every fieldset STAYS MOUNTED at all times so step state and transitions
+ * survive back/forward, and every named control that must reach the server
+ * action either sits in the always-visible active fieldset or (attachments)
+ * outside the fieldsets entirely — a control inside a `hidden` fieldset is
+ * excluded from FormData. The step transition animates the active fieldset
+ * in (x: 24 → 0) while the outgoing one, parked absolutely for one
+ * transition duration (x → −24, opacity → 0), is then hidden, keeping one
+ * layout footprint and full progressive enhancement. Reduced motion swaps
+ * steps instantly, exactly like the pre-hydration behavior. Presentation
+ * only — no form logic changes.
  */
 export function QuoteWizard({
   products,
@@ -143,7 +146,9 @@ export function QuoteWizard({
   const leavingTimer = useRef(0);
   const [mounted, setMounted] = useState(false);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<File[]>([]);
   const landingPageRef = useRef<HTMLInputElement>(null);
+  const attachmentsInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -215,6 +220,38 @@ export function QuoteWizard({
   const goBack = () => transitionTo(Math.max(step - 1, 0));
   const goTo = (target: number) => transitionTo(Math.max(0, Math.min(target, QUOTE_STEPS - 1)));
 
+  // Attachments staging lives in the wizard because the <input> must stay
+  // OUTSIDE the stepped fieldsets: controls inside a `hidden` fieldset are
+  // excluded from the FormData the server action parses, which silently
+  // dropped staged files when the review step was active.
+  const validateAttachments = (list: File[]): string | null => {
+    if (list.length > QUOTE_ATTACHMENT_RULES.maxFiles) {
+      return `Please attach at most ${QUOTE_ATTACHMENT_RULES.maxFiles} files.`;
+    }
+    for (const file of list) {
+      const isImage = file.type.startsWith("image/");
+      const isPdf = file.type === "application/pdf";
+      if (!isImage && !isPdf) return `"${file.name}" isn't an image or PDF.`;
+      if (file.size > QUOTE_ATTACHMENT_RULES.maxBytesPerFile) {
+        return `"${file.name}" is over ${QUOTE_ATTACHMENT_RULES.maxBytesPerFile / (1024 * 1024)} MB.`;
+      }
+    }
+    return null;
+  };
+
+  const handleAttachmentsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const list = Array.from(event.target.files ?? []);
+    const message = validateAttachments(list);
+    setAttachmentError(message);
+    setAttachments(message ? [] : list);
+  };
+
+  const clearAttachments = () => {
+    if (attachmentsInputRef.current) attachmentsInputRef.current.value = "";
+    setAttachments([]);
+    setAttachmentError(null);
+  };
+
   const fieldsetHidden = (index: number) => (mounted ? index !== step && index !== leaving : false);
 
   const stepBodies: ReactNode[] = [
@@ -223,7 +260,12 @@ export function QuoteWizard({
     <StepMaterial key="material" products={products} categories={categories} />,
     <StepDimensions key="dimensions" />,
     <StepCustomization key="customization" />,
-    <StepAttachments key="attachments" onErrorChange={setAttachmentError} />,
+    <StepAttachments
+      key="attachments"
+      files={attachments}
+      error={attachmentError}
+      onClear={clearAttachments}
+    />,
     <StepReview key="review" products={products} onEdit={goTo} />,
   ];
 
@@ -297,6 +339,25 @@ export function QuoteWizard({
         )}
 
         {STEP_TITLES.map((_, index) => renderStep(index))}
+
+        {/*
+         * Always-mounted attachments input, deliberately OUTSIDE the stepped
+         * fieldsets (a `hidden` fieldset's controls never reach the FormData).
+         * Pre-hydration / no-JS it renders as a plain visible input in the long
+         * form; after mount the step-6 label targets it while it stays sr-only.
+         */}
+        <div className="mt-10">
+          <input
+            ref={attachmentsInputRef}
+            id="attachments"
+            name="attachments"
+            type="file"
+            multiple
+            accept={QUOTE_ATTACHMENT_RULES.accept}
+            onChange={handleAttachmentsChange}
+            className={mounted ? "sr-only" : "block w-full text-sm text-ink file:mr-4"}
+          />
+        </div>
 
         <HoneypotField />
         <input ref={landingPageRef} type="hidden" name="landingPage" />

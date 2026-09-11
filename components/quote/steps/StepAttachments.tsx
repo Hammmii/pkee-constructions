@@ -1,56 +1,27 @@
 "use client";
 
-import { useRef, useState } from "react";
 import { QUOTE_ATTACHMENT_RULES } from "@/lib/quote";
 
 type StepAttachmentsProps = {
+  /** Staged files, owned by the wizard (the <input> lives outside the fieldsets). */
+  files: File[];
   /** Wizard-owned: blocks "Continue" while a client-side error is present. */
-  onErrorChange: (message: string | null) => void;
+  error: string | null;
+  onClear: () => void;
 };
 
 const MAX_MB = QUOTE_ATTACHMENT_RULES.maxBytesPerFile / (1024 * 1024);
 
 /**
- * Step 6 — room photos, floor plans, inspiration. Client-side guardrails
- * (≤5 files, ≤10 MB each, images + PDF only) are re-checked server-side in
- * the action. Without JS this degrades to a plain file input inside the
- * native form post.
+ * Step 6 — room photos, floor plans, inspiration. The actual <input
+ * name="attachments"> is rendered by QuoteWizard OUTSIDE the stepped
+ * fieldsets: a control inside a `hidden` fieldset is excluded from the
+ * FormData the server action receives, which silently dropped staged files
+ * on submit. This component is the visible UI (drop label, staged list,
+ * clear) and targets the always-mounted input via htmlFor. Without JS the
+ * wizard renders a plain visible file input inside the native form post.
  */
-export function StepAttachments({ onErrorChange }: StepAttachmentsProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [files, setFiles] = useState<File[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  const validate = (list: File[]): string | null => {
-    if (list.length > QUOTE_ATTACHMENT_RULES.maxFiles) {
-      return `Please attach at most ${QUOTE_ATTACHMENT_RULES.maxFiles} files.`;
-    }
-    for (const file of list) {
-      const isImage = file.type.startsWith("image/");
-      const isPdf = file.type === "application/pdf";
-      if (!isImage && !isPdf) return `"${file.name}" isn't an image or PDF.`;
-      if (file.size > QUOTE_ATTACHMENT_RULES.maxBytesPerFile) {
-        return `"${file.name}" is over ${MAX_MB} MB.`;
-      }
-    }
-    return null;
-  };
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const list = Array.from(event.target.files ?? []);
-    const message = validate(list);
-    setError(message);
-    onErrorChange(message);
-    setFiles(message ? [] : list);
-  };
-
-  const clear = () => {
-    if (inputRef.current) inputRef.current.value = "";
-    setFiles([]);
-    setError(null);
-    onErrorChange(null);
-  };
-
+export function StepAttachments({ files, error, onClear }: StepAttachmentsProps) {
   return (
     <div>
       <p className="mb-8 max-w-xl text-ink/60">
@@ -63,16 +34,6 @@ export function StepAttachments({ onErrorChange }: StepAttachmentsProps) {
       >
         <span className="text-label text-ink/55">Choose files</span>
         <span className="text-sm text-ink/45">or drag and drop — they ride along on submit</span>
-        <input
-          ref={inputRef}
-          id="attachments"
-          name="attachments"
-          type="file"
-          multiple
-          accept={QUOTE_ATTACHMENT_RULES.accept}
-          className="sr-only"
-          onChange={handleChange}
-        />
       </label>
 
       {error && (
@@ -100,7 +61,7 @@ export function StepAttachments({ onErrorChange }: StepAttachmentsProps) {
       {files.length > 0 && (
         <button
           type="button"
-          onClick={clear}
+          onClick={onClear}
           className="mt-4 text-[0.8125rem] uppercase tracking-[0.12em] text-clay underline-offset-4 hover:underline"
         >
           Remove all
