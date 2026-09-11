@@ -7,6 +7,8 @@
       "!**/node_modules",
       "!.next",
       "!**/payload-types.ts",
+      "!migrations",
+      "!qa/lighthouse",
       "!app/(payload)/admin/importMap.js",
       "!app/globals.css"
     ]
