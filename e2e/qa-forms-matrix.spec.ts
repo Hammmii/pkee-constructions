@@ -259,7 +259,7 @@ test.describe("no-JS progressive enhancement", () => {
     await page.getByLabel(/^message$/i).fill("No-JS progressive enhancement smoke test.");
     await page.getByRole("button", { name: /send message/i }).click();
 
-    await page.waitForURL(/\/contact\?sent=1$/, { timeout: 30_000 });
+    await page.waitForURL(/\/contact\?sent=1&name=/, { timeout: 30_000 });
     await expect(page.getByRole("heading", { name: /thank you/i })).toBeVisible();
     contactEmails.push(email);
     await context.close();

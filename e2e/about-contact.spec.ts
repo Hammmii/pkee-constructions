@@ -57,9 +57,16 @@ test("contact form: fill + submit → ?sent=1, doc in Payload, cleanup", async (
   await page.getByLabel(/^message$/i).fill(SENDER.message);
   await page.getByRole("button", { name: /send message/i }).click();
 
-  // Redirected to the success state.
-  await expect(page).toHaveURL(/\/contact\?sent=1$/, { timeout: 30_000 });
+  // Redirected to the success state (first name rides along for the WhatsApp handoff).
+  await expect(page).toHaveURL(/\/contact\?sent=1&name=/, { timeout: 30_000 });
   await expect(page.getByRole("heading", { name: /thank you/i })).toBeVisible();
+
+  // WhatsApp handoff CTA deep-links into the business chat.
+  const waContact = page.getByRole("link", { name: /send via whatsapp/i });
+  await expect(waContact).toBeVisible();
+  const contactHref = (await waContact.getAttribute("href")) ?? "";
+  expect(contactHref).toContain("https://wa.me/14317883188");
+  expect(decodeURIComponent(contactHref)).toContain(`Name: ${SENDER.name.split(" ")[0]}`);
 
   // Message landed in Payload with the right fields and status.
   const payload = await getPayloadClient("e2e-about-contact");

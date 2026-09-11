@@ -113,6 +113,14 @@ test("full samples flow: 3 steps, confirmation, request in Payload", async ({ pa
   const referenceText = await page.locator("main p.border-brass").textContent();
   const reference = (referenceText ?? "").trim();
   expect(reference).toMatch(/^SR-\d{4}-\d{4}$/);
+
+  // WhatsApp handoff CTA deep-links into the business chat with the reference.
+  const waLink = page.getByRole("link", { name: /send via whatsapp/i });
+  await expect(waLink).toBeVisible();
+  const waHref = (await waLink.getAttribute("href")) ?? "";
+  expect(waHref).toContain("https://wa.me/14317883188");
+  expect(decodeURIComponent(waHref)).toContain(`ref ${reference}`);
+
   await expect(page.locator("main h1")).toHaveText(`Thank you, ${LEAD.firstName}.`);
   await page.reload();
   await expect(page.locator("main p.border-brass")).toHaveText(reference);

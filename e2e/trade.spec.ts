@@ -79,6 +79,14 @@ test("dealer application flow: 3 steps, upload, DA- confirmation, doc in Payload
   const referenceText = await page.locator("main p.border-brass").textContent();
   const reference = (referenceText ?? "").trim();
   expect(reference).toMatch(/^DA-\d{4}-\d{4}$/);
+
+  // WhatsApp handoff CTA deep-links into the business chat with the reference.
+  const waLink = page.getByRole("link", { name: /send via whatsapp/i });
+  await expect(waLink).toBeVisible();
+  const waHref = (await waLink.getAttribute("href")) ?? "";
+  expect(waHref).toContain("https://wa.me/14317883188");
+  expect(decodeURIComponent(waHref)).toContain(`ref ${reference}`);
+
   await expect(page.getByRole("heading", { name: /Thank you, Trade\./ })).toBeVisible();
 
   // Application landed in Payload: correct status, fields, and attachment.

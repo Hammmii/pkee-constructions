@@ -81,6 +81,11 @@ test("upload flow: 5 steps, upload, confirmation, doc in Payload", async ({ page
   await expect(page).toHaveURL(/\/custom-studio\/confirmation\?name=Studio/, { timeout: 30_000 });
   await expect(page.getByRole("heading", { name: /Thank you, Studio\./ })).toBeVisible();
 
+  // WhatsApp handoff CTA deep-links into the business chat.
+  const waLink = page.getByRole("link", { name: /send via whatsapp/i });
+  await expect(waLink).toBeVisible();
+  expect((await waLink.getAttribute("href")) ?? "").toContain("https://wa.me/14317883188");
+
   // Request landed in Payload as a Consultations record with the full brief.
   const payload = await getPayloadClient("e2e-custom-studio");
   const { docs } = await payload.find({
