@@ -18,9 +18,10 @@ describe("PageTransition (R2.1)", () => {
     expect(html).toContain("route content");
   });
 
-  it("falls back to the ink-wipe outside View-Transition-capable runtimes", () => {
-    // Node has no document — the VT branch is skipped and the AnimatePresence
-    // ink-wipe fallback renders instead (no crash, content present).
+  it("degrades gracefully outside View-Transition-capable runtimes", () => {
+    // Node has no document — supportsViewTransitions() is false. Pre-mount
+    // renders still go through the VT-shaped branch, whose Fragment fallback
+    // outputs children directly: no wrapper DOM, no crash.
     expect(supportsViewTransitions()).toBe(false);
     const html = renderToString(
       <PageTransition>

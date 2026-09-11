@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";
+import { useMounted, usePrefersReducedMotion } from "./use-prefers-reduced-motion";
 import { supportsViewTransitions, ViewTransition } from "./view-transition";
 
 const EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1]; // --ease-out-expo
@@ -21,7 +21,9 @@ type PageTransitionProps = {
  *   globals.css). The header is pinned via its own `pkee-header`
  *   view-transition-name. Never both systems on one navigation.
  * - No VT support (feature-detect) → the original ink-wipe
- *   `AnimatePresence mode="wait"` fallback (§6).
+ *   `AnimatePresence mode="wait"` fallback (§6), engaged only after mount
+ *   so the server HTML (which cannot know client support) and the first
+ *   client render stay structurally identical — no hydration mismatch.
  * - Reduced motion → children render with no transition of any kind; the
  *   CSS reduced-motion block also collapses any VT animation to 1ms.
  *
@@ -31,8 +33,11 @@ type PageTransitionProps = {
 export function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname();
   const reduced = usePrefersReducedMotion();
+  const mounted = useMounted();
 
-  if (supportsViewTransitions() && !reduced) {
+  // Pre-mount (SSR + hydration): render the VT shape — it adds no wrapper
+  // DOM (name="auto" lands on the child), matching on both sides.
+  if (!mounted || (supportsViewTransitions() && !reduced)) {
     return <ViewTransition default="pkee-page">{children}</ViewTransition>;
   }
 

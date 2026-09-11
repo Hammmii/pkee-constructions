@@ -54,7 +54,7 @@ export function TypeFillSection({ image }: { image: TypeFillImage }) {
         raf = requestAnimationFrame(tick);
       } else {
         fill.style.clipPath = "none";
-        window.removeEventListener("scroll", onScroll, { passive: true } as EventListenerOptions);
+        window.removeEventListener("scroll", onScroll);
       }
     };
 
@@ -71,6 +71,9 @@ export function TypeFillSection({ image }: { image: TypeFillImage }) {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
+      // Restore the SSR final state — a mid-scrub reduced-motion flip or
+      // effect re-run must never leave the text stuck texture-only.
+      fill.style.clipPath = "none";
     };
   }, [reduced]);
 
