@@ -8,10 +8,8 @@ import { expect, test } from "@playwright/test";
 // A unique cache key gives this spec its own Payload instance: the default
 // instance is destroyed by earlier specs' afterAll hooks in the same worker
 // process, which breaks every later local-API query (adapter tables cleared).
-// We deliberately do NOT destroy here — destroying would poison the shared
-// adapter for specs that run after this one.
-import { getPayload } from "payload";
-import config from "../payload.config";
+// Cleanup only deletes created docs — never payload.destroy().
+import { getPayloadClient } from "./payload-client";
 
 const PAYLOAD_KEY = "e2e-samples";
 
@@ -37,7 +35,7 @@ let seededMediaId: number | null = null;
 let seededProductId: number | null = null;
 
 test.afterAll(async () => {
-  const payload = await getPayload({ config, key: PAYLOAD_KEY });
+  const payload = await getPayloadClient(PAYLOAD_KEY);
   if (seededProductId) {
     await payload.delete({ collection: "products", id: seededProductId }).catch(() => {});
   }
@@ -50,7 +48,7 @@ test.afterAll(async () => {
 test("full samples flow: 3 steps, confirmation, request in Payload", async ({ page }) => {
   // A published product must exist for the select. Seed one only when the
   // dev DB doesn't already have any.
-  const payload = await getPayload({ config, key: PAYLOAD_KEY });
+  const payload = await getPayloadClient(PAYLOAD_KEY);
   const { docs: products } = await payload.find({
     collection: "products",
     where: { _status: { equals: "published" } },

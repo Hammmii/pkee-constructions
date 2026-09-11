@@ -3,9 +3,9 @@ import "dotenv/config";
 import { expect, test } from "@playwright/test";
 
 // Verify the application landed in Payload via the local API (same env as
-// the dev server: .env provides DATABASE_URL + PGPASSWORD).
-import { getPayload } from "payload";
-import config from "../payload.config";
+// the dev server: .env provides DATABASE_URL + PGPASSWORD). Shared keyed
+// client — never destroys Payload, only deletes the docs this spec created.
+import { getPayloadClient } from "./payload-client";
 
 // 1×1 transparent PNG.
 const PNG_1PX = Buffer.from(
@@ -29,11 +29,11 @@ const APPLICANT = {
 let applicationId: number | null = null;
 
 test.afterAll(async () => {
-  const payload = await getPayload({ config });
+  const payload = await getPayloadClient("e2e-trade");
   if (applicationId != null) {
-    await payload.delete({ collection: "dealer-applications", id: applicationId });
+    await payload.delete({ collection: "dealer-applications", id: applicationId }).catch(() => {});
   }
-  await payload.destroy();
+  // Intentionally no payload.destroy() — it would poison the shared adapter.
 });
 
 test("dealer application flow: 3 steps, upload, DA- confirmation, doc in Payload", async ({
@@ -82,7 +82,7 @@ test("dealer application flow: 3 steps, upload, DA- confirmation, doc in Payload
   await expect(page.getByRole("heading", { name: /Thank you, Trade\./ })).toBeVisible();
 
   // Application landed in Payload: correct status, fields, and attachment.
-  const payload = await getPayload({ config });
+  const payload = await getPayloadClient("e2e-trade");
   const { docs } = await payload.find({
     collection: "dealer-applications",
     where: { companyName: { equals: APPLICANT.companyName } },

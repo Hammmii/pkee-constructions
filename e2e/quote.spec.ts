@@ -3,9 +3,9 @@ import "dotenv/config";
 import { expect, test } from "@playwright/test";
 
 // Verify the lead landed in Payload via the local API (same env as the dev
-// server: .env provides DATABASE_URL + PGPASSWORD).
-import { getPayload } from "payload";
-import config from "../payload.config";
+// server: .env provides DATABASE_URL + PGPASSWORD). Shared keyed client —
+// never destroys Payload, only deletes the docs this spec created.
+import { getPayloadClient } from "./payload-client";
 
 // 1×1 transparent PNG.
 const PNG_1PX = Buffer.from(
@@ -21,8 +21,8 @@ const LEAD = {
 };
 
 test.afterAll(async () => {
-  const payload = await getPayload({ config });
-  await payload.destroy();
+  // Lead doc is deleted inline in the test; nothing left to clean up.
+  // Intentionally no payload.destroy() — it would poison the shared adapter.
 });
 
 test("full quote flow: 7 steps, attachment, confirmation, lead in Payload", async ({ page }) => {
@@ -84,7 +84,7 @@ test("full quote flow: 7 steps, attachment, confirmation, lead in Payload", asyn
   await expect(page.locator("main p.border-brass")).toHaveText(reference);
 
   // Lead landed in Payload: correct status, source, score, attachment.
-  const payload = await getPayload({ config });
+  const payload = await getPayloadClient("e2e-quote");
   const { docs } = await payload.find({
     collection: "quotes",
     where: { reference: { equals: reference } },

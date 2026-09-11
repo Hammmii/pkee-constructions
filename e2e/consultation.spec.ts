@@ -8,10 +8,8 @@ import { expect, test } from "@playwright/test";
 // A unique cache key gives this spec its own Payload instance: the default
 // instance is destroyed by earlier specs' afterAll hooks in the same worker
 // process, which breaks every later local-API query (adapter tables cleared).
-// We deliberately do NOT destroy here — destroying would poison the shared
-// adapter for specs that run after this one.
-import { getPayload } from "payload";
-import config from "../payload.config";
+// Cleanup only deletes created docs — never payload.destroy().
+import { getPayloadClient } from "./payload-client";
 
 const PAYLOAD_KEY = "e2e-consultation";
 
@@ -78,7 +76,7 @@ test("full consultation flow: ?type= prefill, 3 steps, confirmation, booking in 
 
   // Booking landed in Payload (the collection has no reference column, so we
   // look up by the unique contact email).
-  const payload = await getPayload({ config, key: PAYLOAD_KEY });
+  const payload = await getPayloadClient(PAYLOAD_KEY);
   const { docs } = await payload.find({
     collection: "consultations",
     where: { "contact.email": { equals: LEAD.email } },

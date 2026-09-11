@@ -3,9 +3,8 @@ import "dotenv/config";
 import { expect, test } from "@playwright/test";
 
 // Submissions create real Payload docs — every created doc is deleted in
-// afterAll (same pattern as e2e/trade.spec.ts).
-import { getPayload } from "payload";
-import config from "../payload.config";
+// afterAll. Shared keyed client — never destroys Payload.
+import { getPayloadClient } from "./payload-client";
 
 const timestamp = Date.now();
 
@@ -15,7 +14,7 @@ const createdReferences: string[] = [];
 const contactEmails: string[] = [];
 
 test.afterAll(async () => {
-  const payload = await getPayload({ config });
+  const payload = await getPayloadClient("e2e-qa-forms-matrix");
   for (const ref of createdReferences) {
     const { docs } = await payload.find({
       collection: "quotes",
@@ -39,7 +38,7 @@ test.afterAll(async () => {
   for (const { collection, id } of cleanup) {
     await payload.delete({ collection: collection as never, id: id as never });
   }
-  await payload.destroy();
+  // Intentionally no payload.destroy() — it would poison the shared adapter.
 });
 
 test.describe("honeypot matrix", () => {

@@ -3,9 +3,9 @@ import "dotenv/config";
 import { expect, test } from "@playwright/test";
 
 // Verify the message landed in Payload via the local API (same env as the
-// dev server: .env provides DATABASE_URL + PGPASSWORD).
-import { getPayload } from "payload";
-import config from "../payload.config";
+// dev server: .env provides DATABASE_URL + PGPASSWORD). Shared keyed client —
+// never destroys Payload, only deletes the docs this spec created.
+import { getPayloadClient } from "./payload-client";
 
 const timestamp = Date.now();
 const SENDER = {
@@ -19,11 +19,11 @@ const SENDER = {
 let messageId: number | null = null;
 
 test.afterAll(async () => {
-  const payload = await getPayload({ config });
+  const payload = await getPayloadClient("e2e-about-contact");
   if (messageId != null) {
-    await payload.delete({ collection: "contact-messages", id: messageId });
+    await payload.delete({ collection: "contact-messages", id: messageId }).catch(() => {});
   }
-  await payload.destroy();
+  // Intentionally no payload.destroy() — it would poison the shared adapter.
 });
 
 test("about page renders 200 with story, people, timeline, values, and showroom sections", async ({
@@ -62,7 +62,7 @@ test("contact form: fill + submit → ?sent=1, doc in Payload, cleanup", async (
   await expect(page.getByRole("heading", { name: /thank you/i })).toBeVisible();
 
   // Message landed in Payload with the right fields and status.
-  const payload = await getPayload({ config });
+  const payload = await getPayloadClient("e2e-about-contact");
   const { docs } = await payload.find({
     collection: "contact-messages",
     where: { email: { equals: SENDER.email } },

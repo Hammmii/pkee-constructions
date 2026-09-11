@@ -3,9 +3,9 @@ import "dotenv/config";
 import { expect, test } from "@playwright/test";
 
 // Verify the request landed in Payload via the local API (same env as
-// the dev server: .env provides DATABASE_URL + PGPASSWORD).
-import { getPayload } from "payload";
-import config from "../payload.config";
+// the dev server: .env provides DATABASE_URL + PGPASSWORD). Shared keyed
+// client — never destroys Payload, only deletes the docs this spec created.
+import { getPayloadClient } from "./payload-client";
 
 // 1×1 transparent PNG.
 const PNG_1PX = Buffer.from(
@@ -24,11 +24,11 @@ const REQUESTER = {
 let consultationId: number | null = null;
 
 test.afterAll(async () => {
-  const payload = await getPayload({ config });
+  const payload = await getPayloadClient("e2e-custom-studio");
   if (consultationId != null) {
-    await payload.delete({ collection: "consultations", id: consultationId });
+    await payload.delete({ collection: "consultations", id: consultationId }).catch(() => {});
   }
-  await payload.destroy();
+  // Intentionally no payload.destroy() — it would poison the shared adapter.
 });
 
 test("capability showcase renders", async ({ page }) => {
@@ -82,7 +82,7 @@ test("upload flow: 5 steps, upload, confirmation, doc in Payload", async ({ page
   await expect(page.getByRole("heading", { name: /Thank you, Studio\./ })).toBeVisible();
 
   // Request landed in Payload as a Consultations record with the full brief.
-  const payload = await getPayload({ config });
+  const payload = await getPayloadClient("e2e-custom-studio");
   const { docs } = await payload.find({
     collection: "consultations",
     where: { "contact.email": { equals: REQUESTER.email } },
