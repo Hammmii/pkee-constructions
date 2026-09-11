@@ -46,6 +46,10 @@ export function WhatsAppHandoff({
         Send via WhatsApp
       </a>
       <p className="mt-4 text-sm text-foreground/55">
+        We typically reply on WhatsApp within business hours — {site.whatsappReplyWindow}. A real
+        person from the Winnipeg team, not a bot.
+      </p>
+      <p className="mt-4 text-sm text-foreground/55">
         or we&rsquo;ll reach out using the details you provided.
       </p>
     </div>
