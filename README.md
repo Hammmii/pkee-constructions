@@ -2,7 +2,9 @@
 
 Marketing + catalog site for PKEE Constructions (360 Keewatin St, Winnipeg, MB) —
 premium decorative building materials. Built with **Next.js 16 (App Router) ·
-TypeScript strict · Tailwind v4 · Payload CMS 3 · Postgres · Resend**. Not
+TypeScript strict · Tailwind v4 · Payload CMS 3 · Postgres**. Leads are
+delivered to the client via direct WhatsApp chat (the business number in
+`lib/site.ts`). Not
 ecommerce: every conversion flows into quote / consultation / trade application.
 
 ## Setup
@@ -44,8 +46,7 @@ Vercel deploys `main` on every push. Before pointing the real domain at it:
 
 - [ ] Set env vars in the Vercel project: `DATABASE_URL` (hosted Postgres,
       e.g. Neon/Supabase), `PAYLOAD_SECRET`, `PAYLOAD_PUBLIC_SERVER_URL`
-      (the production URL), `NEXT_PUBLIC_SITE_URL`, `RESEND_API_KEY`,
-      `LEADS_NOTIFICATION_EMAIL`, `PUBLIC_CONTACT_EMAIL`,
+      (the production URL), `NEXT_PUBLIC_SITE_URL`, `PUBLIC_CONTACT_EMAIL`,
       `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`,
       and `NEXT_PUBLIC_ANALYTICS_ID` (optional — no-op when unset).
       Never commit `.env`.
@@ -56,8 +57,9 @@ Vercel deploys `main` on every push. Before pointing the real domain at it:
       `S3_*` env vars (reserved in `.env.example`) before accepting CMS
       uploads in production.
 - [ ] Cloudflare Turnstile: create a site key pair and add the production
-      domain to the widget's allowed hostnames.
-- [ ] Resend: verify the sending domain and update the from/notification
-      addresses.
+      domain to the widget's allowed hostnames. Still recommended on
+      production — leads are stored in Payload and handed off via the
+      confirmation page's WhatsApp deep link, so nothing depends on email
+      delivery.
 - [ ] Attach the custom domain and confirm `https` + `NEXT_PUBLIC_SITE_URL`
       match (metadata/OG tags use it).
