@@ -151,9 +151,10 @@ describe("Home page (M4)", () => {
     expect(html).toContain('href="/products/pvc-wall-panels"');
     // shop by space tile
     expect(html).toContain('href="/solutions/living-room"');
-    // featured material with fully-resolved product route
+    // featured material with fully-resolved product route, in the R2.5 bento
     expect(html).toContain("Classic Marble PVC Panel");
     expect(html).toContain('href="/products/pvc-wall-panels/classic-marble-pvc-panel"');
+    expect(html).toContain('aria-label="Featured materials"');
   });
 
   it("renders projects list, before/after slider, testimonials, trade, and final CTA", async () => {
