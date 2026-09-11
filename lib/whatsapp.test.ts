@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { site, whatsappLink } from "./site";
 import {
   buildLeadWhatsAppLink,
   buildLeadWhatsAppMessage,
   buildWhatsAppLink,
+  customStudioInquiryMessage,
   digitsOnly,
+  genericInquiryMessage,
+  productInquiryMessage,
+  quoteStartMessage,
+  samplesRequestMessage,
+  tradeInquiryMessage,
 } from "./whatsapp";
 
 describe("digitsOnly", () => {
@@ -88,5 +95,50 @@ describe("buildLeadWhatsAppLink", () => {
     const text = decodeURIComponent(link.split("?text=")[1] ?? "");
     expect(text).toContain("(ref CT-2026-0003)");
     expect(text).toContain("When: Friday");
+  });
+});
+
+describe("context prefill messages (R2.2d)", () => {
+  it("generic inquiry is chat-first and brand-named", () => {
+    expect(genericInquiryMessage()).toBe(
+      "Hi PKEE Constructions! I have a question about your wall panels.",
+    );
+  });
+
+  it("product inquiry names the product", () => {
+    expect(productInquiryMessage({ name: "Charcoal Oak" })).toBe(
+      "Hi PKEE, question about Charcoal Oak.",
+    );
+  });
+
+  it("product inquiry includes the SKU when present, skips blank SKUs", () => {
+    expect(productInquiryMessage({ name: "Charcoal Oak", sku: "PV-2201" })).toBe(
+      "Hi PKEE, question about Charcoal Oak (PV-2201).",
+    );
+    expect(productInquiryMessage({ name: "Charcoal Oak", sku: "  " })).toBe(
+      "Hi PKEE, question about Charcoal Oak.",
+    );
+  });
+
+  it("quote start message asks for a quote", () => {
+    expect(quoteStartMessage()).toContain("I'd like a quote");
+  });
+
+  it("trade, custom-studio, and samples messages name their context", () => {
+    expect(tradeInquiryMessage()).toContain("trade / dealer pricing");
+    expect(customStudioInquiryMessage()).toContain("custom fabrication");
+    expect(samplesRequestMessage()).toContain("samples");
+  });
+});
+
+describe("whatsappLink (site helper)", () => {
+  it("builds a link on the business number with encoded prefill", () => {
+    const link = whatsappLink(genericInquiryMessage());
+    expect(link.startsWith("https://wa.me/14317883188?text=")).toBe(true);
+    expect(decodeURIComponent(link.split("?text=")[1] ?? "")).toBe(genericInquiryMessage());
+  });
+
+  it("uses the same number as site.whatsapp", () => {
+    expect(whatsappLink("hi")).toContain(`wa.me/${site.whatsapp.href.replace(/\D/g, "")}`);
   });
 });

@@ -15,13 +15,7 @@ export function digitsOnly(phone: string): string {
  * stripping (throws otherwise); the text is URL-encoded via the standard
  * encoder, which handles line breaks (%0A) and reserved characters.
  */
-export function buildWhatsAppLink({
-  phone,
-  text,
-}: {
-  phone: string;
-  text: string;
-}): string {
+export function buildWhatsAppLink({ phone, text }: { phone: string; text: string }): string {
   const digits = digitsOnly(phone);
   if (digits.length === 0) {
     throw new Error("buildWhatsAppLink: phone must contain at least one digit");
@@ -59,9 +53,46 @@ export function buildLeadWhatsAppMessage({
 }
 
 /** Convenience: lead message + link for the business WhatsApp number. */
-export function buildLeadWhatsAppLink(
-  input: LeadWhatsAppMessageInput & { phone: string },
-): string {
+export function buildLeadWhatsAppLink(input: LeadWhatsAppMessageInput & { phone: string }): string {
   const { phone, ...message } = input;
   return buildWhatsAppLink({ phone, text: buildLeadWhatsAppMessage(message) });
+}
+
+/**
+ * Site-wide prefill messages for context-specific wa.me entry points (R2.2d).
+ * Prefilled threads convert better because the first message is already
+ * "started" — keep these short, emoji-free, and human.
+ */
+
+/** Generic pages (footer, mobile menu, floating actions, etc.). */
+export function genericInquiryMessage(): string {
+  return "Hi PKEE Constructions! I have a question about your wall panels.";
+}
+
+/** Product pages — names the product (and SKU when the CMS provides one). */
+export function productInquiryMessage(product: { name: string; sku?: string | null }): string {
+  const sku = product.sku?.trim();
+  return sku
+    ? `Hi PKEE, question about ${product.name} (${sku}).`
+    : `Hi PKEE, question about ${product.name}.`;
+}
+
+/** Quote-flow entry ("I'd like a quote for…"). */
+export function quoteStartMessage(): string {
+  return "Hi PKEE! I'd like a quote for my project. Can you help me get started?";
+}
+
+/** Trade / dealer pages. */
+export function tradeInquiryMessage(): string {
+  return "Hi PKEE! I have a question about trade / dealer pricing.";
+}
+
+/** Custom Studio pages. */
+export function customStudioInquiryMessage(): string {
+  return "Hi PKEE! I have a question about a custom fabrication project.";
+}
+
+/** Samples pages. */
+export function samplesRequestMessage(): string {
+  return "Hi PKEE! I'd like to order samples of your wall panels.";
 }
