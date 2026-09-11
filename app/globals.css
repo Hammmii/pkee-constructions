@@ -124,6 +124,16 @@ body::after {
   border-color: var(--line-on-dark);
 }
 
+/* R2.3 kinetic type — one display line shared by the texture pass and the
+   scrubbed solid-fill pass (TypeFillSection). */
+.typefill-line {
+  margin: 0;
+  font-size: clamp(2.75rem, 9vw, 8.5rem);
+  line-height: 0.98;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
 /* focus — always visible, brass */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 1.5px solid var(--brass);
@@ -131,8 +141,64 @@ body::after {
 }
 
 /* ---------------------------------------------------------------------------
+   view transitions (R2.1 — motion-spec §9)
+--------------------------------------------------------------------------- */
+
+/* clicks pass through the transition overlay */
+::view-transition {
+  pointer-events: none;
+}
+
+/* default route change: subtle crossfade, 300ms expo (spec §9 timing) */
+::view-transition-old(.pkee-page),
+::view-transition-new(.pkee-page) {
+  animation-duration: 300ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+/* shared-element morph (product card → PDP hero): 400ms + mid-flight blur
+   to hide interpolation artifacts (never > 6px, never on the final state) */
+::view-transition-group(.morph) {
+  animation-duration: 400ms;
+}
+::view-transition-image-pair(.morph) {
+  animation-name: pkee-morph-blur;
+}
+@keyframes pkee-morph-blur {
+  30% {
+    filter: blur(4px);
+  }
+}
+
+/* pinned header: never slides, old snapshot hidden so there is no flash */
+::view-transition-group(pkee-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(pkee-header) {
+  display: none;
+}
+::view-transition-new(pkee-header) {
+  animation: none;
+}
+
+/* ---------------------------------------------------------------------------
    reduced motion — first-class path
 --------------------------------------------------------------------------- */
+
+/* React does NOT auto-disable VT — collapse every VT animation (morphs and
+   crossfades may keep opacity fades per spec, but duration ~0 is the
+   accepted simple treatment; directional slides never run because the page
+   crossfade is opacity-only). */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 1ms !important;
+    animation-delay: 0s !important;
+  }
+}
+
 
 @media (prefers-reduced-motion: reduce) {
   *,

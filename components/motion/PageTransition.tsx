@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";
+import { supportsViewTransitions, ViewTransition } from "./view-transition";
 
 const EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1]; // --ease-out-expo
 const WIPE_MS = 450;
@@ -13,13 +14,27 @@ type PageTransitionProps = {
 };
 
 /**
- * Dark overlay wipe + content crossfade on App Router pathname changes.
- * Total choreographed time stays under 600ms. Skipped entirely under
- * reduced motion and on first load (initial={false}).
+ * Route-change motion, R2.1 (motion-spec §6/§9):
+ *
+ * - View Transitions supported → a `<ViewTransition>` wrapper around the
+ *   route children gives a subtle 300ms crossfade (`.pkee-page` in
+ *   globals.css). The header is pinned via its own `pkee-header`
+ *   view-transition-name. Never both systems on one navigation.
+ * - No VT support (feature-detect) → the original ink-wipe
+ *   `AnimatePresence mode="wait"` fallback (§6).
+ * - Reduced motion → children render with no transition of any kind; the
+ *   CSS reduced-motion block also collapses any VT animation to 1ms.
+ *
+ * The VT wrapper must be the first node of its (page) tree; it lives here
+ * around `<main>` rather than around the persistent layout chrome.
  */
 export function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname();
   const reduced = usePrefersReducedMotion();
+
+  if (supportsViewTransitions() && !reduced) {
+    return <ViewTransition default="pkee-page">{children}</ViewTransition>;
+  }
 
   if (reduced) {
     return <>{children}</>;

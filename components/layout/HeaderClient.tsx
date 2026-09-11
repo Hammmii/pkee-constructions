@@ -157,7 +157,9 @@ export function HeaderClient({ categories }: HeaderClientProps) {
 
   return (
     <>
+      {/* Pinned through view transitions — see `pkee-header` in globals.css. */}
       <header
+        style={{ viewTransitionName: "pkee-header" }}
         className={cn(
           "fixed inset-x-0 top-0 z-50 transition-[transform,background-color,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none",
           hidden && !overlaysOpen ? "-translate-y-full" : "translate-y-0",

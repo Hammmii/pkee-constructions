@@ -159,7 +159,12 @@ export default async function ProductPage({ params }: PageProps<"/products/[cate
       <Container className="py-10 md:py-14">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <ProductGallery images={images} layoutIdPrefix={`product-${product.id}`} priority />
+            <ProductGallery
+              images={images}
+              layoutIdPrefix={`product-${product.id}`}
+              transitionName={`pkee-product-${product.slug}`}
+              priority
+            />
           </div>
 
           <div>

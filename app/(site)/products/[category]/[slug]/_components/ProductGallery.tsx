@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import Image from "next/image";
 import { useState } from "react";
 import { type LightboxImage, ProductLightbox } from "@/components/catalog/ProductLightbox";
+import { ViewTransition } from "@/components/motion/view-transition";
 import { cn } from "@/lib/utils";
 
 const EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -16,10 +17,13 @@ const EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
 export function ProductGallery({
   images,
   layoutIdPrefix,
+  transitionName,
   priority = false,
 }: {
   images: LightboxImage[];
   layoutIdPrefix: string;
+  /** Shared-element morph target for the card → PDP hero transition (R2.1). */
+  transitionName: string;
   priority?: boolean;
 }) {
   const [active, setActive] = useState(0);
@@ -36,21 +40,23 @@ export function ProductGallery({
         aria-label={`Open image viewer: ${current.alt}`}
         className="group relative block aspect-[4/5] w-full cursor-zoom-in overflow-hidden bg-stone/40"
       >
-        <motion.div
-          key={current.src}
-          layoutId={`${layoutIdPrefix}-${active}`}
-          className="absolute inset-0"
-          transition={{ duration: 0.6, ease: EXPO }}
-        >
-          <Image
-            src={current.src}
-            alt={current.alt}
-            fill
-            priority={priority}
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            className="object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
-          />
-        </motion.div>
+        <ViewTransition name={transitionName} default="none" share="morph">
+          <motion.div
+            key={current.src}
+            layoutId={`${layoutIdPrefix}-${active}`}
+            className="absolute inset-0"
+            transition={{ duration: 0.6, ease: EXPO }}
+          >
+            <Image
+              src={current.src}
+              alt={current.alt}
+              fill
+              priority={priority}
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+            />
+          </motion.div>
+        </ViewTransition>
         <span
           aria-hidden
           className="absolute bottom-4 right-4 border border-[color:var(--line-on-dark)] bg-ink/55 px-3 py-1.5 text-[0.6875rem] uppercase tracking-[0.12em] text-bone opacity-0 backdrop-blur-sm transition-opacity duration-500 group-hover:opacity-100"
