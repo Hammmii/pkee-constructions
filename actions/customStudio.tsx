@@ -157,6 +157,7 @@ export async function submitCustomStudioRequest(
       collection: "consultations",
       data: {
         type: "phone",
+        source: "website-custom-studio",
         date: new Date().toISOString(),
         time: "Callback — Custom Studio",
         productInterest: message,
