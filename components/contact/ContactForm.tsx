@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { type FieldPath, FormProvider, type Resolver, useForm } from "react-hook-form";
 import { type ContactActionState, submitContactMessage } from "@/actions/contact";
@@ -42,6 +42,10 @@ export function ContactForm({ turnstileSiteKey }: ContactFormProps) {
   const [state, formAction] = useActionState<ContactActionState, FormData>(submitContactMessage, {
     status: "idle",
   });
+  // Mounting TurnstileWidget injects the Cloudflare challenge script (~450 KB
+  // of page weight). Defer it until the visitor actually interacts with the
+  // form — the token is always in place well before submit.
+  const [turnstileActive, setTurnstileActive] = useState(false);
 
   const form = useForm<ContactFormInput>({
     resolver: zodResolver(contactMessageSchema) as unknown as Resolver<ContactFormInput>,
@@ -65,7 +69,13 @@ export function ContactForm({ turnstileSiteKey }: ContactFormProps) {
 
   return (
     <FormProvider {...form}>
-      <form action={formAction} noValidate className="relative">
+      <form
+        action={formAction}
+        noValidate
+        className="relative"
+        onFocusCapture={() => setTurnstileActive(true)}
+        onInputCapture={() => setTurnstileActive(true)}
+      >
         {state.status === "error" && state.formError && (
           <p role="alert" className="border border-clay/40 px-4 py-3 text-[0.8125rem] text-clay">
             {state.formError}
@@ -125,7 +135,7 @@ export function ContactForm({ turnstileSiteKey }: ContactFormProps) {
         </div>
 
         <HoneypotField />
-        {turnstileSiteKey ? (
+        {turnstileSiteKey && turnstileActive ? (
           <div className="mt-10">
             <TurnstileWidget siteKey={turnstileSiteKey} />
           </div>

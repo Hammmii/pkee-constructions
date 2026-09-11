@@ -4,7 +4,6 @@ import { ReactLenis, useLenis } from "lenis/react";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { gsap, initGsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 
 type SmoothScrollProviderProps = {
   children: ReactNode;
@@ -17,6 +16,10 @@ type SmoothScrollProviderProps = {
  *
  * `autoRaf` stays off because the canonical sync feeds `lenis.raf` from
  * `gsap.ticker` — enabling both would double-step every frame.
+ *
+ * GSAP is imported dynamically inside the effect, not at module top level,
+ * so the ~116 KB gsap/ScrollTrigger chunk stays out of the initial shared
+ * bundle and out of every page's critical path.
  */
 export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
   return (
@@ -38,10 +41,13 @@ function GsapLenisSync({ children }: SmoothScrollProviderProps) {
   const lenis = useLenis();
   const pathname = usePathname();
 
-  useGSAP(
-    () => {
-      if (!lenis) return;
+  useEffect(() => {
+    if (!lenis) return;
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
 
+    void import("@/lib/gsap").then(({ gsap, initGsap, ScrollTrigger }) => {
+      if (cancelled) return;
       initGsap();
 
       lenis.on("scroll", ScrollTrigger.update);
@@ -49,13 +55,17 @@ function GsapLenisSync({ children }: SmoothScrollProviderProps) {
       gsap.ticker.add(raf);
       gsap.ticker.lagSmoothing(0);
 
-      return () => {
+      cleanup = () => {
         lenis.off("scroll", ScrollTrigger.update);
         gsap.ticker.remove(raf);
       };
-    },
-    { dependencies: [lenis] },
-  );
+    });
+
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, [lenis]);
 
   // App Router client navigations don't reset scroll natively under Lenis.
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-running on every pathname change is the intent
