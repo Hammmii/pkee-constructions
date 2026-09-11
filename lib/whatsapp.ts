@@ -45,8 +45,9 @@ export function buildLeadWhatsAppMessage({
   summaryLines,
 }: LeadWhatsAppMessageInput): string {
   const refPart = reference ? ` (ref ${reference})` : "";
+  const namePart = firstName ? ` My name is ${firstName}.` : "";
   const lines = [
-    `Hi PKEE Constructions! I just submitted a ${formType} request${refPart}. Here are my details:`,
+    `Hi PKEE Constructions! I just submitted a ${formType} request${refPart}.${namePart} Here are my details:`,
     ...(summaryLines.length > 0 ? ["", ...summaryLines] : []),
   ];
   return lines.join("\n");

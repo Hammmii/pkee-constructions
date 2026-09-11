@@ -53,7 +53,7 @@ describe("buildLeadWhatsAppMessage", () => {
     });
     expect(message).toBe(
       "Hi PKEE Constructions! I just submitted a quote request (ref PK-2026-0042). " +
-        "Here are my details:\n\nName: Sami",
+        "My name is Sami. Here are my details:\n\nName: Sami",
     );
   });
 
