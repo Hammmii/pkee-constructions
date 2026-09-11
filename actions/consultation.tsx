@@ -1,17 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import {
-  ConsultationConfirmationEmail,
-  type ConsultationSummaryRow,
-} from "@/emails/ConsultationConfirmation";
-import { ConsultationNotificationEmail } from "@/emails/ConsultationNotification";
-import {
-  CONSULTATION_TYPE_LABELS,
-  consultationReferenceFromCount,
-  PROJECT_TYPE_LABELS,
-} from "@/lib/consultation";
-import { sendEmail } from "@/lib/emails";
+import { consultationReferenceFromCount } from "@/lib/consultation";
 import { getPayloadCached } from "@/lib/payload";
 import { consultationSchema } from "@/lib/validators/consultation";
 
@@ -65,19 +55,11 @@ async function verifyTurnstile(token: string | undefined): Promise<boolean> {
   }
 }
 
-function formatTime(time: string): string {
-  const [hours, minutes] = time.split(":").map(Number);
-  if (typeof hours !== "number" || Number.isNaN(hours)) return time;
-  const period = hours >= 12 ? "PM" : "AM";
-  const display = hours % 12 === 0 ? 12 : hours % 12;
-  return `${display}:${String(minutes ?? 0).padStart(2, "0")} ${period}`;
-}
-
 /**
  * The consultation booking pipeline. Order of operations: honeypot →
  * Turnstile → zod re-validation → reference sequence → Consultations doc
- * (status "new") → only then emails. Email failure never blocks or rolls
- * back the booking.
+ * (status "new") → redirect. Leads are handed off via the confirmation
+ * page's WhatsApp deep link — no email step.
  */
 export async function submitConsultation(
   _prevState: ConsultationActionState,
@@ -125,10 +107,9 @@ export async function submitConsultation(
   });
   const reference = consultationReferenceFromCount(year, totalDocs);
 
-  // 5. Create the booking — BEFORE any email attempt.
-  let booking: { id: number } | null = null;
+  // 5. Create the booking — persistence is the whole pipeline.
   try {
-    booking = await payload.create({
+    await payload.create({
       collection: "consultations",
       data: {
         type: data.type,
@@ -148,49 +129,6 @@ export async function submitConsultation(
     // biome-ignore lint/suspicious/noConsole: lead persistence failure must be loud.
     console.error("[consultation] failed to create consultation:", error);
     return { status: "error", errors: {}, formError: FORM_ERROR };
-  }
-
-  // 6. Emails — customer confirmation + internal notification. Never throws.
-  const dateLabel = new Date(`${data.date}T12:00:00`).toLocaleDateString("en-CA", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-  const rows: ConsultationSummaryRow[] = [
-    { label: "Type", value: CONSULTATION_TYPE_LABELS[data.type] ?? data.type },
-    { label: "When", value: `${dateLabel} · ${formatTime(data.time)}` },
-    { label: "Project", value: PROJECT_TYPE_LABELS[data.projectType] ?? data.projectType },
-  ];
-  if (data.productInterest) rows.push({ label: "Interested in", value: data.productInterest });
-
-  const baseUrl = process.env.PAYLOAD_PUBLIC_SERVER_URL ?? "http://localhost:3000";
-  const name = `${data.firstName} ${data.lastName}`;
-
-  await sendEmail({
-    to: data.email,
-    subject: `Your consultation request — ${reference}`,
-    react: <ConsultationConfirmationEmail reference={reference} name={name} rows={rows} />,
-  });
-
-  const internalRecipient =
-    process.env.LEADS_NOTIFICATION_EMAIL ?? process.env.PUBLIC_CONTACT_EMAIL;
-  if (internalRecipient) {
-    await sendEmail({
-      to: internalRecipient,
-      subject: `New consultation request ${reference} — ${name}`,
-      react: (
-        <ConsultationNotificationEmail
-          reference={reference}
-          name={name}
-          email={data.email}
-          phone={data.phone}
-          rows={rows}
-          notes={data.notes ?? null}
-          adminUrl={`${baseUrl}/admin/collections/consultations/${booking.id}`}
-        />
-      ),
-    });
   }
 
   const firstName = encodeURIComponent(data.firstName);

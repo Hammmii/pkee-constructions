@@ -1,9 +1,6 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { SamplesConfirmationEmail, type SamplesSummaryRow } from "@/emails/SamplesConfirmation";
-import { SamplesNotificationEmail } from "@/emails/SamplesNotification";
-import { sendEmail } from "@/lib/emails";
 import { getPayloadCached } from "@/lib/payload";
 import { sampleReferenceFromCount } from "@/lib/samples";
 import { samplesSchema } from "@/lib/validators/samples";
@@ -63,10 +60,11 @@ async function verifyTurnstile(token: string | undefined): Promise<boolean> {
 /**
  * The sample-request pipeline. Order of operations: honeypot → Turnstile →
  * zod re-validation → reference sequence → SampleRequests doc (status "new")
- * → only then emails. Email failure never blocks or rolls back the request.
+ * → redirect. Leads are handed off via the confirmation page's WhatsApp
+ * deep link — no email step.
  *
  * The SR-YYYY-NNNN sequence is derived from the year's document count and
- * carried to the confirmation page (and both emails) as a display token.
+ * carried to the confirmation page as a display token.
  */
 export async function submitSampleRequest(
   _prevState: SamplesActionState,
@@ -142,10 +140,9 @@ export async function submitSampleRequest(
     .filter(Boolean)
     .join(", ");
 
-  // 6. Create the request — BEFORE any email attempt.
-  let request: { id: number } | null = null;
+  // 6. Create the request — persistence is the whole pipeline.
   try {
-    request = await payload.create({
+    await payload.create({
       collection: "sample-requests",
       data: {
         product: product.id,
@@ -165,41 +162,6 @@ export async function submitSampleRequest(
     // biome-ignore lint/suspicious/noConsole: lead persistence failure must be loud.
     console.error("[samples] failed to create sample request:", error);
     return { status: "error", errors: {}, formError: FORM_ERROR };
-  }
-
-  // 7. Emails — customer confirmation + internal notification. Never throws.
-  const rows: SamplesSummaryRow[] = [
-    { label: "Product", value: product.name },
-    { label: "Colour", value: data.color },
-    { label: "Finish", value: data.finish },
-    { label: "Quantity", value: String(data.quantity) },
-  ];
-  const baseUrl = process.env.PAYLOAD_PUBLIC_SERVER_URL ?? "http://localhost:3000";
-  const name = `${data.firstName} ${data.lastName}`;
-
-  await sendEmail({
-    to: data.email,
-    subject: `We received your sample request — ${reference}`,
-    react: <SamplesConfirmationEmail reference={reference} name={name} rows={rows} />,
-  });
-
-  const internalRecipient =
-    process.env.LEADS_NOTIFICATION_EMAIL ?? process.env.PUBLIC_CONTACT_EMAIL;
-  if (internalRecipient) {
-    await sendEmail({
-      to: internalRecipient,
-      subject: `New sample request ${reference} — ${product.name}`,
-      react: (
-        <SamplesNotificationEmail
-          reference={reference}
-          name={name}
-          email={data.email}
-          phone={data.phone}
-          rows={rows}
-          adminUrl={`${baseUrl}/admin/collections/sample-requests/${request.id}`}
-        />
-      ),
-    });
   }
 
   const firstName = encodeURIComponent(data.firstName);

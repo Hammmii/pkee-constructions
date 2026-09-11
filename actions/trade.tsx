@@ -2,17 +2,9 @@
 
 import { redirect } from "next/navigation";
 import type { DataFromCollectionSlug } from "payload";
-import { TradeConfirmationEmail, type TradeSummaryRow } from "@/emails/TradeConfirmation";
-import { TradeNotificationEmail } from "@/emails/TradeNotification";
-import { sendEmail } from "@/lib/emails";
 import { getPayloadCached } from "@/lib/payload";
 import { isAcceptedTradeAttachment, TRADE_ATTACHMENT_RULES } from "@/lib/trade";
-import {
-  BUSINESS_TYPE_LABELS,
-  type TradeApplicationInput,
-  TURNOVER_LABELS,
-  tradeApplicationSchema,
-} from "@/lib/validators/trade";
+import { tradeApplicationSchema } from "@/lib/validators/trade";
 
 export type TradeActionState =
   | { status: "idle" }
@@ -76,43 +68,12 @@ function parseFormData(formData: FormData) {
   };
 }
 
-function labelFor(labels: Record<string, string>, value: string | null | undefined): string | null {
-  return value ? (labels[value] ?? value) : null;
-}
-
-function buildSummaryRows(data: TradeApplicationInput, attachmentCount: number): TradeSummaryRow[] {
-  const rows: TradeSummaryRow[] = [];
-  const push = (label: string, value: string | null | undefined) => {
-    if (value) rows.push({ label, value });
-  };
-
-  push("Company", data.companyName);
-  push(
-    "Contact",
-    [data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : null, data.phone]
-      .filter(Boolean)
-      .join(" · ") || null,
-  );
-  push("Business type", labelFor(BUSINESS_TYPE_LABELS, data.businessType));
-  if (data.yearsInBusiness != null) {
-    push("Years in business", String(data.yearsInBusiness));
-  }
-  push("Annual turnover", labelFor(TURNOVER_LABELS, data.annualTurnover));
-  if (data.otherBrands) push("Brands carried", data.otherBrandNames);
-  push("Location", [data.city, data.province, data.postalCode].filter(Boolean).join(", ") || null);
-  if (attachmentCount > 0) {
-    push("Attachments", `${attachmentCount} file${attachmentCount === 1 ? "" : "s"}`);
-  }
-
-  return rows;
-}
-
 /**
  * The dealer application pipeline. Order of operations: honeypot →
  * Turnstile → zod re-validation → attachments to media →
  * DealerApplications doc (status "new"; the collection's beforeChange hook
- * generates the unique DA-YYYY-NNNN reference) → only then emails. Email
- * failure never blocks or rolls back the application.
+ * generates the unique DA-YYYY-NNNN reference) → redirect. Leads are handed
+ * off via the confirmation page's WhatsApp deep link — no email step.
  */
 export async function submitTradeApplication(
   _prevState: TradeActionState,
@@ -222,42 +183,6 @@ export async function submitTradeApplication(
     return { status: "error", errors: {}, formError: FORM_ERROR };
   }
   const reference = application.reference;
-
-  // 7. Emails — applicant confirmation + internal notification. Never throws.
-  const rows = buildSummaryRows(data, documentIds.length);
-  const baseUrl = process.env.PAYLOAD_PUBLIC_SERVER_URL ?? "http://localhost:3000";
-
-  await sendEmail({
-    to: data.email,
-    subject: `We received your dealer application — ${reference}`,
-    react: (
-      <TradeConfirmationEmail
-        reference={reference}
-        name={`${data.firstName} ${data.lastName}`}
-        rows={rows}
-      />
-    ),
-  });
-
-  const internalRecipient =
-    process.env.LEADS_NOTIFICATION_EMAIL ?? process.env.PUBLIC_CONTACT_EMAIL;
-  if (internalRecipient) {
-    await sendEmail({
-      to: internalRecipient,
-      subject: `New dealer application ${reference} — ${data.companyName}`,
-      react: (
-        <TradeNotificationEmail
-          reference={reference}
-          name={`${data.firstName} ${data.lastName}`}
-          company={data.companyName}
-          email={data.email}
-          phone={data.phone}
-          rows={rows}
-          adminUrl={`${baseUrl}/admin/collections/dealer-applications/${application.id}`}
-        />
-      ),
-    });
-  }
 
   redirect(`/trade/confirmation?ref=${reference}`);
 }

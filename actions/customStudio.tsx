@@ -1,14 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { CustomStudioConfirmationEmail } from "@/emails/CustomStudioConfirmation";
-import { CustomStudioNotificationEmail } from "@/emails/CustomStudioNotification";
 import {
   buildCustomStudioMessage,
   CUSTOM_STUDIO_ATTACHMENT_RULES,
   isAcceptedCustomStudioAttachment,
 } from "@/lib/customStudio";
-import { sendEmail } from "@/lib/emails";
 import { getPayloadCached } from "@/lib/payload";
 import {
   type CustomStudioRequestInput,
@@ -78,8 +75,9 @@ function formatDimension(value: number | undefined): string | undefined {
  * The Custom Studio request pipeline. Order of operations: honeypot →
  * Turnstile → zod re-validation → reference uploads to media → Consultations
  * doc (type "phone" — staff call back; the collection has no custom-request
- * fields, so the full brief is composed into `productInterest`) → only then
- * emails. Email failure never blocks or rolls back the request.
+ * fields, so the full brief is composed into `productInterest`) → redirect.
+ * Leads are handed off via the confirmation page's WhatsApp deep link — no
+ * email step.
  */
 export async function submitCustomStudioRequest(
   _prevState: CustomStudioActionState,
@@ -137,9 +135,9 @@ export async function submitCustomStudioRequest(
     }
   }
 
-  // 5. Create the Consultations record — BEFORE any email attempt. The
-  //    collection's closest fit for a custom request: type "phone" (the team
-  //    calls back), date/time required fields satisfied, full brief in
+  // 5. Create the Consultations record — persistence is the whole pipeline.
+  //    The collection's closest fit for a custom request: type "phone" (the
+  //    team calls back), date/time required fields satisfied, full brief in
   //    productInterest.
   const message = buildCustomStudioMessage({
     baseMaterial: data.baseMaterial,
@@ -151,9 +149,8 @@ export async function submitCustomStudioRequest(
     attachments: uploaded,
   });
 
-  let consultation: { id: number } | null = null;
   try {
-    consultation = await payload.create({
+    await payload.create({
       collection: "consultations",
       data: {
         type: "phone",
@@ -173,53 +170,6 @@ export async function submitCustomStudioRequest(
     // biome-ignore lint/suspicious/noConsole: lead persistence failure must be loud.
     console.error("[custom-studio] failed to create consultations record:", error);
     return { status: "error", errors: {}, formError: FORM_ERROR };
-  }
-
-  // 6. Emails — uploader confirmation + internal notification. Never throws.
-  const rows = [
-    { label: "Base material", value: data.baseMaterial },
-    { label: "Finish", value: data.finish },
-    ...(data.width != null || data.height != null
-      ? [
-          {
-            label: "Dimensions",
-            value: [formatDimension(data.width), formatDimension(data.height)]
-              .filter(Boolean)
-              .join(" × "),
-          },
-        ]
-      : []),
-    ...(data.quantity ? [{ label: "Quantity / area", value: data.quantity }] : []),
-    { label: "Reference files", value: String(uploaded.length) },
-  ];
-
-  const baseUrl = process.env.PAYLOAD_PUBLIC_SERVER_URL ?? "http://localhost:3000";
-
-  await sendEmail({
-    to: data.email,
-    subject: "We received your Custom Studio request",
-    react: (
-      <CustomStudioConfirmationEmail name={`${data.firstName} ${data.lastName}`} rows={rows} />
-    ),
-  });
-
-  const internalRecipient =
-    process.env.LEADS_NOTIFICATION_EMAIL ?? process.env.PUBLIC_CONTACT_EMAIL;
-  if (internalRecipient) {
-    await sendEmail({
-      to: internalRecipient,
-      subject: `New Custom Studio request — ${data.baseMaterial} for ${data.firstName} ${data.lastName}`,
-      react: (
-        <CustomStudioNotificationEmail
-          name={`${data.firstName} ${data.lastName}`}
-          email={data.email}
-          phone={data.phone}
-          brief={message}
-          attachmentCount={uploaded.length}
-          adminUrl={`${baseUrl}/admin/collections/consultations/${consultation.id}`}
-        />
-      ),
-    });
   }
 
   const firstName = encodeURIComponent(data.firstName);

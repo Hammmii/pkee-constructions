@@ -1,21 +1,13 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { QuoteConfirmationEmail, type QuoteSummaryRow } from "@/emails/QuoteConfirmation";
-import { QuoteNotificationEmail } from "@/emails/QuoteNotification";
-import { sendEmail } from "@/lib/emails";
 import { getPayloadCached } from "@/lib/payload";
 import {
-  BUILD_TYPE_LABELS,
   computeLeadScore,
   isAcceptedAttachment,
-  PROJECT_TYPE_LABELS,
   QUOTE_ATTACHMENT_RULES,
   referenceFromCount,
-  TIMELINE_LABELS,
-  UNIT_LABELS,
 } from "@/lib/quote";
-import type { QuoteValues } from "@/lib/validators/quote";
 import { quoteSchema } from "@/lib/validators/quote";
 import type { Quote } from "@/payload-types";
 
@@ -101,74 +93,12 @@ function parseFormData(formData: FormData) {
   };
 }
 
-function labelFor(labels: Record<string, string>, value: string | null | undefined): string | null {
-  return value ? (labels[value] ?? value) : null;
-}
-
-function buildSummaryRows(
-  data: QuoteValues,
-  productName: string | null,
-  attachmentCount: number,
-): QuoteSummaryRow[] {
-  const rows: QuoteSummaryRow[] = [];
-  const push = (label: string, value: string | null | undefined) => {
-    if (value) rows.push({ label, value });
-  };
-
-  push("Product", productName);
-  push(
-    "Project",
-    [
-      labelFor(PROJECT_TYPE_LABELS, data.project.projectType),
-      labelFor(BUILD_TYPE_LABELS, data.project.buildType),
-      data.project.roomType,
-    ]
-      .filter(Boolean)
-      .join(" · ") || null,
-  );
-  push("Timeline", labelFor(TIMELINE_LABELS, data.project.timeline));
-  if (data.material.quantity != null) {
-    push(
-      "Quantity",
-      `${data.material.quantity} ${labelFor(UNIT_LABELS, data.material.unit) ?? ""}`.trim(),
-    );
-  }
-  push("Finish", data.material.finish);
-  push("Colour", data.material.color);
-
-  const dimensions = data.dimensions;
-  const dimensionParts = [
-    dimensions.width != null && dimensions.height != null
-      ? `${dimensions.width} × ${dimensions.height}`
-      : null,
-    dimensions.floorArea != null ? `${dimensions.floorArea} sq ft floor` : null,
-    dimensions.wallCount != null
-      ? `${dimensions.wallCount} wall${dimensions.wallCount === 1 ? "" : "s"}`
-      : null,
-    dimensions.doorCount != null
-      ? `${dimensions.doorCount} door/opening${dimensions.doorCount === 1 ? "" : "s"}`
-      : null,
-  ].filter(Boolean);
-  if (dimensionParts.length > 0) push("Dimensions", dimensionParts.join(" · "));
-
-  push("Design requirements", data.customization.designRequirements);
-  const services = [
-    data.customization.installationRequired ? "Installation" : null,
-    data.customization.deliveryRequired ? "Delivery" : null,
-  ].filter(Boolean);
-  if (services.length > 0) push("Services", services.join(" · "));
-  if (attachmentCount > 0)
-    push("Attachments", `${attachmentCount} file${attachmentCount === 1 ? "" : "s"}`);
-  push("City", data.customer.city);
-
-  return rows;
-}
-
 /**
  * The quote pipeline — the business core. Order of operations matters:
  * honeypot → Turnstile → zod re-validation → attachments to media →
- * reference → Quotes doc (status "new") → only then emails. Email failure
- * never blocks or rolls back the lead.
+ * reference → Quotes doc (status "new") → redirect. Leads are handed off
+ * via the confirmation page's WhatsApp deep link, so there is no email
+ * step and nothing after persistence can fail.
  */
 export async function submitQuote(
   _prevState: QuoteActionState,
@@ -214,7 +144,6 @@ export async function submitQuote(
 
   // 5. Resolve the product relationship from its slug.
   let productId: number | null = null;
-  let productName: string | null = null;
   if (data.material.productSlug) {
     const found = await payload.find({
       collection: "products",
@@ -225,7 +154,6 @@ export async function submitQuote(
     const product = found.docs[0];
     if (product) {
       productId = product.id;
-      productName = product.name;
     }
   }
 
@@ -319,36 +247,6 @@ export async function submitQuote(
 
   if (!quote) {
     return { status: "error", errors: {}, formError: FORM_ERROR };
-  }
-
-  // 8. Emails — customer confirmation + internal notification. Never throws.
-  const rows = buildSummaryRows(data, productName, attachmentIds.length);
-  const baseUrl = process.env.PAYLOAD_PUBLIC_SERVER_URL ?? "http://localhost:3000";
-
-  await sendEmail({
-    to: data.customer.email,
-    subject: `We received your request — ${reference}`,
-    react: <QuoteConfirmationEmail reference={reference} name={data.customer.name} rows={rows} />,
-  });
-
-  const internalRecipient =
-    process.env.LEADS_NOTIFICATION_EMAIL ?? process.env.PUBLIC_CONTACT_EMAIL;
-  if (internalRecipient) {
-    await sendEmail({
-      to: internalRecipient,
-      subject: `New quote request ${reference} — score ${leadScore}/100`,
-      react: (
-        <QuoteNotificationEmail
-          reference={reference}
-          name={data.customer.name}
-          email={data.customer.email}
-          phone={data.customer.phone}
-          leadScore={leadScore}
-          rows={rows}
-          adminUrl={`${baseUrl}/admin/collections/quotes/${quote.id}`}
-        />
-      ),
-    });
   }
 
   redirect(`/quote/confirmation?ref=${reference}`);

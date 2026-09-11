@@ -1,12 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { ContactConfirmationEmail, type ContactSummaryRow } from "@/emails/ContactConfirmation";
-import { ContactNotificationEmail } from "@/emails/ContactNotification";
 import { contactSubjectLabel } from "@/lib/contact";
-import { sendEmail } from "@/lib/emails";
 import { getPayloadCached } from "@/lib/payload";
-import { type ContactMessageInput, contactMessageSchema } from "@/lib/validators/contact";
+import { contactMessageSchema } from "@/lib/validators/contact";
 
 export type ContactActionState =
   | { status: "idle" }
@@ -54,24 +51,13 @@ function parseFormData(formData: FormData) {
   };
 }
 
-function buildSummaryRows(data: ContactMessageInput): ContactSummaryRow[] {
-  const rows: ContactSummaryRow[] = [];
-  const push = (label: string, value: string | null | undefined) => {
-    if (value) rows.push({ label, value });
-  };
-  push("Name", data.name);
-  push("Email", data.email);
-  push("Phone", data.phone);
-  push("Topic", contactSubjectLabel(data.subject));
-  return rows;
-}
-
 /**
  * The /contact pipeline. Order of operations: honeypot → Turnstile → zod
- * re-validation → ContactMessages doc (status "new") → only then emails.
- * Email failure never blocks or rolls back the message. Success redirects
- * to /contact?sent=1 — the page renders the confirmation state from the
- * query string, so nothing about the message is exposed publicly.
+ * re-validation → ContactMessages doc (status "new") → redirect. Success
+ * redirects to /contact?sent=1 — the page renders the confirmation state
+ * from the query string, so nothing about the message is exposed publicly.
+ * Leads are handed off via the success panel's WhatsApp deep link; there is
+ * no email step.
  */
 export async function submitContactMessage(
   _prevState: ContactActionState,
@@ -80,9 +66,7 @@ export async function submitContactMessage(
   // 1. Honeypot — pretend success so bots get no signal, but store nothing.
   if (getString(formData, "website")) {
     redirect("/contact?sent=1");
-  }
-
-  // 2. Turnstile (env-gated).
+  } // 2. Turnstile (env-gated).
   if (!(await verifyTurnstile(getString(formData, "cf-turnstile-response")))) {
     return {
       status: "error",
@@ -103,11 +87,10 @@ export async function submitContactMessage(
   }
   const data = parsed.data;
 
-  // 4. Create the message — BEFORE any email attempt.
+  // 4. Create the message — persistence is the whole pipeline.
   const payload = await getPayloadCached();
-  let message: { id: number } | null = null;
   try {
-    message = await payload.create({
+    await payload.create({
       collection: "contact-messages",
       data: {
         name: data.name,
@@ -124,34 +107,8 @@ export async function submitContactMessage(
     return { status: "error", errors: {}, formError: FORM_ERROR };
   }
 
-  // 5. Emails — sender confirmation + internal notification. Never throws.
-  const rows = buildSummaryRows(data);
-  const baseUrl = process.env.PAYLOAD_PUBLIC_SERVER_URL ?? "http://localhost:3000";
-
-  await sendEmail({
-    to: data.email,
-    subject: `We received your message — ${contactSubjectLabel(data.subject)}`,
-    react: <ContactConfirmationEmail name={data.name} subject={data.subject} rows={rows} />,
-  });
-
-  const internalRecipient =
-    process.env.LEADS_NOTIFICATION_EMAIL ?? process.env.PUBLIC_CONTACT_EMAIL;
-  if (internalRecipient) {
-    await sendEmail({
-      to: internalRecipient,
-      subject: `New contact message — ${contactSubjectLabel(data.subject)} from ${data.name}`,
-      react: (
-        <ContactNotificationEmail
-          name={data.name}
-          email={data.email}
-          phone={data.phone}
-          subject={data.subject}
-          rows={rows}
-          adminUrl={`${baseUrl}/admin/collections/contact-messages/${message.id}`}
-        />
-      ),
-    });
-  }
-
-  redirect("/contact?sent=1");
+  // 5. Success panel carries the first name so the WhatsApp handoff message
+  //    can greet the sender; nothing else is exposed in the URL.
+  const firstName = data.name.trim().split(/\s+/)[0] ?? "";
+  redirect(`/contact?sent=1&name=${encodeURIComponent(firstName)}`);
 }
