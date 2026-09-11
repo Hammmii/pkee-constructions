@@ -37,7 +37,7 @@ export function WhatsAppHandoff({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={`Send your ${formType} details to ${site.name} via WhatsApp`}
+        aria-label={`Send via WhatsApp — your ${formType} details to ${site.name}`}
         className="mt-6 inline-flex h-14 select-none items-center gap-3 rounded-[2px] bg-ink px-8 text-[0.8125rem] font-medium uppercase tracking-[0.12em] text-bone transition-colors duration-500 hover:bg-charcoal hover:text-brass"
       >
         <svg aria-hidden width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
