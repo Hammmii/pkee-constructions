@@ -24,6 +24,7 @@ import { Ticker } from "@/components/marketing/Ticker";
 import { TradeBand } from "@/components/marketing/TradeBand";
 import { VisualizerPromo } from "@/components/marketing/VisualizerPromo";
 import { WhyChooseUs } from "@/components/marketing/WhyChooseUs";
+import { TypeFillSection } from "@/components/motion/TypeFillSection";
 import { getPayloadCached } from "@/lib/payload";
 import { absoluteUrl } from "@/lib/seo/metadata";
 import { site } from "@/lib/site";
@@ -53,6 +54,7 @@ export default async function Home() {
     <div className="flex-1">
       <Preloader />
       <HomeHero image={heroImage} subtext={heroSubtext} />
+      <TypeFillSection image={craftSecondary ?? craftPrimary} />
       {tickerNames.length > 0 ? <Ticker items={tickerNames} /> : null}
       {categories.length > 0 ? <CollectionsExplorer categories={categories} /> : null}
       <ShopBySpace spaces={spaces} />
