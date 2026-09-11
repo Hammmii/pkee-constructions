@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Track } from "@/components/analytics/Track";
+import { WhatsAppHandoff } from "@/components/lead/WhatsAppHandoff";
 import { getPayloadCached } from "@/lib/payload";
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default async function TradeConfirmationPage({
   const reference = typeof ref === "string" && REFERENCE_PATTERN.test(ref) ? ref : null;
 
   let firstName: string | null = null;
+  let summaryLines: string[] = [];
   if (reference) {
     const payload = await getPayloadCached();
     const { docs } = await payload.find({
@@ -34,6 +36,11 @@ export default async function TradeConfirmationPage({
     const application = docs[0];
     if (application) {
       firstName = application.firstName.trim() || null;
+      summaryLines = [
+        ...(firstName ? [`Name: ${firstName}`] : []),
+        `Company: ${application.companyName}`,
+        ...(application.city ? [`City: ${application.city}`] : []),
+      ];
     }
   }
 
@@ -55,10 +62,17 @@ export default async function TradeConfirmationPage({
           </>
         ) : (
           <p className="mt-6 max-w-xl text-foreground/60">
-            If you just submitted an application, we have it — a confirmation is on its way to your
-            inbox.
+            If you just submitted an application, we have it — tap the WhatsApp button below to send
+            us your details directly.
           </p>
         )}
+
+        <WhatsAppHandoff
+          formType="dealer application"
+          reference={reference}
+          firstName={firstName}
+          summaryLines={summaryLines}
+        />
 
         <div className="mt-12 border-t pt-8 rule">
           <h2 className="text-label text-ink/55">What happens next</h2>

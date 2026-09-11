@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Track } from "@/components/analytics/Track";
+import { WhatsAppHandoff } from "@/components/lead/WhatsAppHandoff";
 import { getPayloadCached } from "@/lib/payload";
 
 export const metadata: Metadata = {
@@ -22,17 +23,25 @@ export default async function QuoteConfirmationPage({
   const reference = typeof ref === "string" && REFERENCE_PATTERN.test(ref) ? ref : null;
 
   let firstName: string | null = null;
+  let summaryLines: string[] = [];
   if (reference) {
     const payload = await getPayloadCached();
     const { docs } = await payload.find({
       collection: "quotes",
       where: { reference: { equals: reference } },
       limit: 1,
-      depth: 0,
+      depth: 1,
     });
     const quote = docs[0];
     if (quote) {
       firstName = quote.customer.name.trim().split(/\s+/)[0] ?? quote.customer.name;
+      summaryLines = [
+        `Name: ${firstName}`,
+        ...(quote.customer.city ? [`City: ${quote.customer.city}`] : []),
+        ...(quote.material && typeof quote.material.product === "object" && quote.material.product
+          ? [`Product: ${quote.material.product.name}`]
+          : []),
+      ];
     }
   }
 
@@ -54,8 +63,8 @@ export default async function QuoteConfirmationPage({
           </>
         ) : (
           <p className="mt-6 max-w-xl text-foreground/60">
-            If you just submitted a request, we have it — a confirmation is on its way to your
-            inbox.
+            If you just submitted a request, we have it — tap the WhatsApp button below to send us
+            your details directly.
           </p>
         )}
 
@@ -70,6 +79,13 @@ export default async function QuoteConfirmationPage({
             </li>
           </ol>
         </div>
+
+        <WhatsAppHandoff
+          formType="quote"
+          reference={reference}
+          firstName={firstName}
+          summaryLines={summaryLines}
+        />
 
         <div className="mt-10 border-t pt-8 rule">
           <h2 className="text-label text-ink/55">In a hurry?</h2>

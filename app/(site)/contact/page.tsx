@@ -3,6 +3,7 @@ import Link from "next/link";
 import { TrackClick } from "@/components/analytics/TrackClick";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { MapEmbed } from "@/components/contact/MapEmbed";
+import { WhatsAppHandoff } from "@/components/lead/WhatsAppHandoff";
 import { SpecRow } from "@/components/ui/SpecRow";
 import { directionsUrl, mailtoHref, phoneHref } from "@/lib/contact";
 import { site } from "@/lib/site";
@@ -19,9 +20,13 @@ const actionBase =
 const actionSolid = `${actionBase} bg-ink text-bone hover:bg-charcoal`;
 const actionGhost = `${actionBase} border border-stone text-ink hover:border-ink`;
 
+const NAME_PATTERN = /^[\p{L}][\p{L}'’\- ]{0,39}$/u;
+
 export default async function ContactPage({ searchParams }: PageProps<"/contact">) {
   const sp = await searchParams;
   const sent = sp.sent === "1";
+  const rawName = typeof sp.name === "string" && NAME_PATTERN.test(sp.name) ? sp.name : null;
+  const firstName = rawName?.trim().split(/\s+/)[0] ?? null;
 
   return (
     <div className="flex-1 bg-background pt-[var(--header-h)]">
@@ -98,6 +103,14 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
                   Your message is with the showroom team — we respond within one business day. For
                   anything urgent, call {site.phone.display}.
                 </p>
+                <div className="mt-8">
+                  <WhatsAppHandoff
+                    formType="contact"
+                    reference={null}
+                    firstName={firstName}
+                    summaryLines={firstName ? [`Name: ${firstName}`] : []}
+                  />
+                </div>
                 <div className="mt-8 flex flex-wrap gap-4">
                   <Link href="/products" className={actionSolid}>
                     Browse the catalog

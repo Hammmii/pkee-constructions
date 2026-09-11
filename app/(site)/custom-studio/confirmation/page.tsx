@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { WhatsAppHandoff } from "@/components/lead/WhatsAppHandoff";
 
 export const metadata: Metadata = {
   title: "Request Received",
@@ -30,9 +31,16 @@ export default async function CustomStudioConfirmationPage({
         </h1>
 
         <p className="mt-6 max-w-xl text-foreground/60">
-          Your design upload is with our Custom Studio team — a confirmation is on its way to your
-          inbox. We review every request personally and respond within 2 business days.
+          Your design upload is with our Custom Studio team — we review every request personally and
+          respond within 2 business days.
         </p>
+
+        <WhatsAppHandoff
+          formType="Custom Studio"
+          reference={null}
+          firstName={firstName}
+          summaryLines={firstName ? [`Name: ${firstName}`] : []}
+        />
 
         <div className="mt-12 border-t pt-8 rule">
           <h2 className="text-label text-ink/55">What happens next</h2>

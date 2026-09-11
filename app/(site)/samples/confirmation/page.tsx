@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Track } from "@/components/analytics/Track";
+import { WhatsAppHandoff } from "@/components/lead/WhatsAppHandoff";
 
 export const metadata: Metadata = {
   title: "Sample Request Received",
@@ -42,10 +43,17 @@ export default async function SamplesConfirmationPage({
           </>
         ) : (
           <p className="mt-6 max-w-xl text-foreground/60">
-            If you just submitted a request, we have it — a confirmation is on its way to your
-            inbox.
+            If you just submitted a request, we have it — tap the WhatsApp button below to send us
+            your details directly.
           </p>
         )}
+
+        <WhatsAppHandoff
+          formType="sample request"
+          reference={reference}
+          firstName={firstName}
+          summaryLines={firstName ? [`Name: ${firstName}`] : []}
+        />
 
         <div className="mt-12 border-t pt-8 rule">
           <h2 className="text-label text-ink/55">What happens next</h2>
