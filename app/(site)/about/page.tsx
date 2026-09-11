@@ -110,7 +110,7 @@ export default async function AboutPage() {
       : [];
 
   return (
-    <main className="flex-1 bg-background">
+    <div className="flex-1 bg-background">
       <AboutHero
         heading={
           heroBlock && heroBlock.blockType === "hero" && heroBlock.heading
@@ -152,6 +152,6 @@ export default async function AboutPage() {
       <ValuesGrid values={VALUES} />
       <ShowroomCallout />
       <FinalCta />
-    </main>
+    </div>
   );
 }

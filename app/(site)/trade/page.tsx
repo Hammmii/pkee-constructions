@@ -42,7 +42,7 @@ const WHO_IT_SUITS = [
 
 export default function TradePage() {
   return (
-    <main className="flex-1 bg-background">
+    <div className="flex-1 bg-background">
       {/* Hero + value proposition */}
       <section className="mx-auto w-full max-w-5xl px-6 pt-20 pb-16 md:px-10 md:pt-28">
         <p className="text-label text-brass">Trade Program</p>
@@ -121,6 +121,6 @@ export default function TradePage() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

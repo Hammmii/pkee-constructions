@@ -47,7 +47,7 @@ function PlaceholderBlock({ label, tone }: { label: string; tone: "stone" | "cha
 
 export default function DesignSystemPage() {
   return (
-    <main id="main">
+    <div>
       {/* ------------------------------------------------ bone section */}
       <section className="bg-bone py-24 md:py-32">
         <Container>
@@ -213,6 +213,6 @@ export default function DesignSystemPage() {
           </div>
         </Container>
       </section>
-    </main>
+    </div>
   );
 }

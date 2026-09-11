@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 /** Streaming fallback for /quote: heading + wizard chrome in branded skeleton. */
 export default function QuoteLoading() {
   return (
-    <main className="flex-1 bg-background">
+    <div className="flex-1 bg-background">
       <div className="mx-auto w-full max-w-3xl px-6 py-20 md:px-10 md:py-28">
         <Skeleton className="h-3 w-28" />
         <Skeleton className="mt-4 h-10 w-full max-w-md md:h-12" />
@@ -47,6 +47,6 @@ export default function QuoteLoading() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

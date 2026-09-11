@@ -4,7 +4,7 @@ import { CatalogCardSkeleton } from "@/components/ui/Skeleton";
 /** Streaming fallback for /products: filters frame + card skeletons. */
 export default function ProductsLoading() {
   return (
-    <main className="flex-1">
+    <div className="flex-1">
       <Container className="py-16 md:py-24">
         <div className="rule border-b pb-8">
           <div className="h-3 w-24 bg-ink/5" />
@@ -37,6 +37,6 @@ export default function ProductsLoading() {
           </div>
         </div>
       </Container>
-    </main>
+    </div>
   );
 }

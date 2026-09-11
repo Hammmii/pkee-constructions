@@ -48,7 +48,7 @@ export default async function Home() {
       : (projects[0]?.detailImage ?? null);
 
   return (
-    <main className="flex-1">
+    <div className="flex-1">
       <Preloader />
       <HomeHero image={heroImage} subtext={heroSubtext} />
       {tickerNames.length > 0 ? <Ticker items={tickerNames} /> : null}
@@ -65,7 +65,7 @@ export default async function Home() {
       <TradeBand />
       <FinalCta />
       <LocalBusinessJsonLd />
-    </main>
+    </div>
   );
 }
 

@@ -116,7 +116,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[cate
   const colors = (product.colors ?? []).map((c) => ({ name: c.name, hex: c.hex }));
 
   return (
-    <main className="flex-1">
+    <div className="flex-1">
       <Track event="product_view" properties={{ product: product.slug, category: categorySlug }} />
       <JsonLd
         data={[
@@ -284,6 +284,6 @@ export default async function ProductPage({ params }: PageProps<"/products/[cate
           </Button>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

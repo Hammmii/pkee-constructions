@@ -4,7 +4,7 @@ import { CatalogCardSkeleton } from "@/components/ui/Skeleton";
 /** Streaming fallback for /products/[category]. */
 export default function CategoryLoading() {
   return (
-    <main className="flex-1">
+    <div className="flex-1">
       <section className="flex min-h-[50svh] items-end bg-ink">
         <Container className="relative z-10 pb-14 pt-40">
           <div className="h-3 w-40 bg-bone/10" />
@@ -19,6 +19,6 @@ export default function CategoryLoading() {
           ))}
         </div>
       </Container>
-    </main>
+    </div>
   );
 }

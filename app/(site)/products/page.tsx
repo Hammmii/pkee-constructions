@@ -97,7 +97,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/product
   };
 
   return (
-    <main className="flex-1">
+    <div className="flex-1">
       <JsonLd data={[itemListJsonLd(result.products), localBusinessJsonLd()]} />
       {state.q ? <Track event="search" properties={{ q: state.q, results: result.total }} /> : null}
       {hasFilters ? <Track event="filter_use" properties={activeFilterProperties} /> : null}
@@ -158,6 +158,6 @@ export default async function ProductsPage({ searchParams }: PageProps<"/product
           </div>
         </div>
       </Container>
-    </main>
+    </div>
   );
 }

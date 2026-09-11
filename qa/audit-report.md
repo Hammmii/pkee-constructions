@@ -43,4 +43,31 @@ Date: 2026-09-11 · Target: dev server (Next 16.3.4 + Payload 3.88, embedded Pos
 ## Harness notes
 
 - `qa/check-links.mts` — crawls sitemap + static routes + all 12 solution slugs via Playwright; asserts `<main>`, collects console errors, verifies every internal `<a href>` by fetch. **Dev-server quirk handled:** Next dev embeds the not-found page in every response's `<script>` flight data, so 404 detection strips `<script>` blocks before matching the "went missing from the blueprint" marker (see `e2e/solutions.spec.ts` for the same quirk).
+
+## Defect resolutions (post-audit fixes)
+
+### Defect #3 — FIXED
+Root cause: every site page rendered its own `<main className="flex-1">` inside the
+root layout's `<main id="main">` (invalid nested `<main>` landmarks), and the Payload
+route group rendered Payload's own `<html>/<body>` document inside the site root
+layout's `<main>` — so React logged "`<main>` cannot be a child of `<html>`",
+"mounting a new html/body component", and hydration mismatches on every page,
+cascading into `NotFoundError: insertBefore/removeChild` on navigation.
+Fix: site routes now render inside a single root-layout `<main id="main">` (page-level
+`<main>` elements demoted to `<div>` keeping their layout classes); the site and
+Payload admin render under separate root layouts (`app/(site)/` route group), so the
+admin document no longer nests inside the site `<main>`.
+Verification (`qa/repro-hydration.mts` against :3000): `/`, `/products`,
+`/products/pvc-wall-panels/classic-marble-pvc-panel`, `/quote` → exactly one `<main>`,
+zero console errors; `/admin` → zero console errors (was 14). Defect #6 (hydration-
+dependent product h1) resolved with the same fix — no tree rebuild occurs.
+
+### Defect #5 — FIXED (same root cause)
+The Payload admin login errors ("mounting a new Router/html when a previous one has
+not first unmounted", insertBefore/removeChild) were the admin-side symptom of the
+same layout nesting: Payload's `RootLayout` (`@payloadcms/next/layouts`) renders a
+full `<html>/<body>` document and was mounted inside the site root layout's `<main>`.
+No Payload config or importMap change was needed; the route-group root-layout split
+above eliminates the double document. Re-verified on `/admin`: 0 hydration errors,
+login renders.
 - Forms-matrix submissions create real Payload docs; everything created is deleted in `afterAll` (pattern from `e2e/trade.spec.ts`).

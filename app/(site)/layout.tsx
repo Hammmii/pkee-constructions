@@ -5,7 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { SmoothScrollProvider } from "@/components/motion/SmoothScrollProvider";
-import "./globals.css";
+import "../globals.css";
 
 /* Stand-ins until PP Neue Montreal / Editorial New licenses are purchased
    (M11). Variable names match the token contracts in globals.css so the

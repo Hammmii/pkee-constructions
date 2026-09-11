@@ -41,7 +41,7 @@ export default async function SamplesPage({ searchParams }: PageProps<"/samples"
   }
 
   return (
-    <main className="flex-1 bg-background">
+    <div className="flex-1 bg-background">
       <div className="mx-auto w-full max-w-3xl px-6 py-20 md:px-10 md:py-28">
         <p className="text-label text-brass">Samples</p>
         <h1 className="mt-4 font-serif text-4xl italic text-ink md:text-5xl">
@@ -67,6 +67,6 @@ export default async function SamplesPage({ searchParams }: PageProps<"/samples"
           />
         </div>
       </div>
-    </main>
+    </div>
   );
 }

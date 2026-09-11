@@ -37,7 +37,7 @@ export default async function QuoteConfirmationPage({
   }
 
   return (
-    <main className="flex-1 bg-background">
+    <div className="flex-1 bg-background">
       <Track event="quote_complete" properties={{ reference: reference ?? null }} />
       <div className="mx-auto w-full max-w-3xl px-6 py-20 md:px-10 md:py-28">
         <p className="text-label text-brass">Request received</p>
@@ -92,6 +92,6 @@ export default async function QuoteConfirmationPage({
           Keep browsing materials
         </Link>
       </div>
-    </main>
+    </div>
   );
 }

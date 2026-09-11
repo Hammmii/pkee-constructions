@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function ProjectDetailLoading() {
   return (
-    <main className="flex-1">
+    <div className="flex-1">
       <Container className="py-16 md:py-24">
         <div className="border-b border-line pb-10">
           <Skeleton className="h-4 w-24" />
@@ -22,6 +22,6 @@ export default function ProjectDetailLoading() {
           <Skeleton className="h-5 w-5/6" />
         </div>
       </Container>
-    </main>
+    </div>
   );
 }

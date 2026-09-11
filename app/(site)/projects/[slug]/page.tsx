@@ -141,7 +141,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<Pa
   const materials = project.materialsUsed ?? [];
 
   return (
-    <main className="flex-1">
+    <div className="flex-1">
       <JsonLd data={jsonLd} />
       <Container className="py-16 md:py-24">
         {/* Header */}
@@ -337,6 +337,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<Pa
           </section>
         ) : null}
       </Container>
-    </main>
+    </div>
   );
 }

@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 /** Streaming fallback for /products/[category]/[slug]. */
 export default function ProductLoading() {
   return (
-    <main className="flex-1">
+    <div className="flex-1">
       <Container className="py-28 md:py-32">
         <div className="h-3 w-64 bg-ink/5" />
         <div className="mt-10 grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
@@ -23,6 +23,6 @@ export default function ProductLoading() {
           </div>
         </div>
       </Container>
-    </main>
+    </div>
   );
 }

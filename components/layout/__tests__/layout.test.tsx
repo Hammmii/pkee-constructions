@@ -1,6 +1,6 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import NotFound from "@/app/not-found";
+import NotFound from "@/app/(site)/not-found";
 import { site } from "@/lib/site";
 import { FooterView } from "../FooterView";
 

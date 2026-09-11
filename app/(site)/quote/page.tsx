@@ -58,7 +58,7 @@ export default async function QuotePage({ searchParams }: PageProps<"/quote">) {
   }
 
   return (
-    <main className="flex-1 bg-background">
+    <div className="flex-1 bg-background">
       <Track
         event="quote_start"
         properties={{ product: productSlug ?? null, preselected: Boolean(preselected) }}
@@ -88,6 +88,6 @@ export default async function QuotePage({ searchParams }: PageProps<"/quote">) {
           />
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -24,7 +24,7 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
   const sent = sp.sent === "1";
 
   return (
-    <main className="flex-1 bg-background pt-[var(--header-h)]">
+    <div className="flex-1 bg-background pt-[var(--header-h)]">
       {/* Header */}
       <section className="mx-auto w-full max-w-5xl px-6 pt-16 pb-16 md:px-10 md:pt-24">
         <p className="text-label text-brass">Contact</p>
@@ -120,6 +120,6 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

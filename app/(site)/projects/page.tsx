@@ -53,7 +53,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
   const count = projects.length;
 
   return (
-    <main className="flex-1">
+    <div className="flex-1">
       <JsonLd
         data={[
           {
@@ -150,6 +150,6 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
           </ul>
         )}
       </Container>
-    </main>
+    </div>
   );
 }
