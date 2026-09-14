@@ -17,6 +17,7 @@ import {
   listRelatedProducts,
   propertyLabel,
 } from "@/lib/queries/products";
+import { listProductTestimonials } from "@/lib/queries/testimonials";
 import { breadcrumbJsonLd, JsonLd, mediaAbsoluteUrl, productJsonLd } from "@/lib/seo/JsonLd";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { site, whatsappLink } from "@/lib/site";
@@ -25,6 +26,7 @@ import type { Media, Product } from "@/payload-types";
 import { FinishSwatches } from "./_components/FinishSwatches";
 import { ProductGallery } from "./_components/ProductGallery";
 import { ProjectsStrip } from "./_components/ProjectsStrip";
+import { TestimonialsStrip } from "./_components/TestimonialsStrip";
 
 export async function generateMetadata({
   params,
@@ -68,9 +70,10 @@ export default async function ProductPage({ params }: PageProps<"/products/[cate
 
   const category = typeof product.category === "object" ? product.category : null;
 
-  const [related, projects] = await Promise.all([
+  const [related, projects, testimonials] = await Promise.all([
     listRelatedProducts(product),
     listProjectsUsingProduct(product.id, 4),
+    listProductTestimonials(product, 3),
   ]);
 
   const hero = asMedia(product.heroImage);
@@ -301,6 +304,8 @@ export default async function ProductPage({ params }: PageProps<"/products/[cate
       )}
 
       <ProjectsStrip projects={projects} />
+
+      <TestimonialsStrip testimonials={testimonials} />
 
       {/* Mobile floating quote CTA */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t rule bg-bone/95 p-3 backdrop-blur-sm lg:hidden">
