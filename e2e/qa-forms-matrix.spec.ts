@@ -176,13 +176,10 @@ test.describe("CTA → prefill wiring", () => {
     await page.locator("main").getByRole("link", { name: "Request a quote" }).first().click();
     await page.waitForURL(/\/quote\?product=classic-marble-pvc-panel/);
 
-    // KNOWN FLAKE (suspected product bug, app code off-limits): /quote
-    // renders its wizard inside a client-only Suspense boundary (same root
-    // cause as the no-JS failure documented at the top of this file).
-    // Navigating from the product CTA with ?product= re-renders that
-    // boundary and can reset the wizard mid-walk, leaving the material-step
-    // select hidden. The walk below is hydration-gated and passes in
-    // isolation; it flakes only when the Suspense reset wins the race.
+    // The wizard restores step + draft values across the streamed-RSC
+    // remount that used to reset it mid-walk (see QuoteWizard's
+    // wizardSession snapshot), so this walk is safe without extra gating
+    // beyond the initial hydration wait.
     await expect(page.getByRole("heading", { name: /first, how do we reach you/i })).toBeVisible();
     await page.getByLabel(/full name/i).fill(`Prefill Tester ${timestamp}`);
     await page.getByLabel(/^email/i).fill(`qa-prefill-${timestamp}@example.com`);

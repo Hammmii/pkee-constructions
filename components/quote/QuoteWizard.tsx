@@ -4,7 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "motion/react";
 import { type ReactNode, useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { type FieldPath, FormProvider, type Resolver, useForm } from "react-hook-form";
+import {
+  type DeepPartial,
+  type FieldPath,
+  FormProvider,
+  type Resolver,
+  useForm,
+} from "react-hook-form";
 import { type QuoteActionState, submitQuote } from "@/actions/quote";
 import { usePrefersReducedMotion } from "@/components/motion/use-prefers-reduced-motion";
 import { QUOTE_ATTACHMENT_RULES, QUOTE_STEPS } from "@/lib/quote";
@@ -81,6 +87,20 @@ const STEP_FIELDS: FieldPath<QuoteFormInput>[][] = [
   [],
   [],
 ];
+
+/**
+ * Cross-remount session snapshot. Client-navigating into /quote streams the
+ * async page in stages; when the final RSC patch lands mid-walk, React can
+ * discard and re-create the wizard subtree, wiping `useState` step and the
+ * DOM field values. While the wizard is alive we keep the latest step +
+ * field values here; a freshly mounted instance restores from the snapshot
+ * only when it is still warm (a remount), so a genuine navigation away and
+ * back later starts clean. Server-rendered HTML is unaffected — this code
+ * only runs client-side.
+ */
+type WizardSession = { at: number; step: number; values: DeepPartial<QuoteFormInput> };
+const REMOUNT_WINDOW_MS = 3_000;
+let wizardSession: WizardSession | null = null;
 
 const navBase =
   "inline-flex h-14 min-w-[10rem] select-none items-center justify-center rounded-[2px] px-8 " +
@@ -193,11 +213,53 @@ export function QuoteWizard({
 
   // Surface server-side validation errors on the matching fields.
   useEffect(() => {
+    if (state.status === "success") wizardSession = null;
     if (state.status !== "error") return;
     for (const [path, message] of Object.entries(state.errors)) {
       form.setError(path as FieldPath<QuoteFormInput>, { type: "server", message });
     }
   }, [state, form]);
+
+  // Apply the ?product= prefill whenever the resolved prop changes, not just
+  // on first mount — the streamed RSC patch can deliver `preselected` after
+  // the wizard has already mounted (and RHF defaultValues never re-apply).
+  useEffect(() => {
+    if (!preselected) return;
+    form.setValue("material.categorySlug", preselected.categorySlug ?? "", {
+      shouldDirty: true,
+    });
+    form.setValue("material.productSlug", preselected.slug, { shouldDirty: true });
+  }, [preselected, form]);
+
+  // Keep the cross-remount snapshot warm: every field change and step change
+  // refreshes it so a mid-walk remount can restore exactly where the user
+  // was. A fresh mount consumes a warm snapshot (remount); a cold or absent
+  // one means a genuine navigation and starts clean.
+  const stepRef = useRef(step);
+  useEffect(() => {
+    stepRef.current = step;
+    if (wizardSession) {
+      wizardSession.step = step;
+      wizardSession.at = Date.now();
+    }
+  }, [step]);
+
+  useEffect(() => {
+    const snapshot = wizardSession;
+    wizardSession = null;
+    if (snapshot && Date.now() - snapshot.at < REMOUNT_WINDOW_MS) {
+      form.reset(snapshot.values as QuoteFormInput);
+      if (preselected) {
+        form.setValue("material.categorySlug", preselected.categorySlug ?? "");
+        form.setValue("material.productSlug", preselected.slug);
+      }
+      setStep(snapshot.step);
+    }
+    const subscription = form.watch((values) => {
+      wizardSession = { at: Date.now(), step: stepRef.current, values };
+    });
+    return () => subscription.unsubscribe();
+  }, [form, preselected]);
 
   const transitionTo = (next: number) => {
     if (next === step) return;
