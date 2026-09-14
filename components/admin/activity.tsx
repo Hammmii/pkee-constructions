@@ -1,6 +1,6 @@
 import type { PayloadRequest } from "payload";
 import type { ReactNode } from "react";
-
+import { AutoSubmitForm } from "@/components/admin/activity-filters";
 import { ADMIN_CSS } from "@/components/admin/styles";
 import {
   buildActivityQuery,
@@ -126,7 +126,7 @@ async function ActivityView({ initPageResult }: ViewProps) {
         <a href="/admin">Back to dashboard</a>
       </p>
 
-      <form className="pk-filters" method="get">
+      <AutoSubmitForm>
         <label>
           <span className="pk-muted">Type</span>
           <select name="type" defaultValue={typeFilter ?? ""}>
@@ -151,7 +151,7 @@ async function ActivityView({ initPageResult }: ViewProps) {
         </label>
         <button type="submit">Filter</button>
         {(typeFilter || statusFilter) && <a href="/admin/activity">Reset</a>}
-      </form>
+      </AutoSubmitForm>
 
       {visible.length === 0 ? (
         <p className="pk-muted">No lead events match these filters.</p>
