@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { type KeyboardEvent as ReactKeyboardEvent, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
+import { track } from "@/lib/analytics";
 import { navLinks, quoteCta, site, whatsappLink } from "@/lib/site";
 import { genericInquiryMessage } from "@/lib/whatsapp";
 import { useMounted, usePrefersReducedMotion } from "../motion/use-prefers-reduced-motion";
@@ -153,6 +154,12 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Chat with ${site.name} on WhatsApp at ${site.whatsapp.display}`}
+                  onClick={() =>
+                    track("whatsapp_click", {
+                      href: whatsappLink(genericInquiryMessage()),
+                      source: "mobile-menu",
+                    })
+                  }
                   className="block text-[color:var(--bone-on-ink)] transition-colors duration-300 hover:text-brass"
                 >
                   Chat on WhatsApp {site.whatsapp.display}

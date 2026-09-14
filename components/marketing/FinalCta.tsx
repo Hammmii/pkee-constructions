@@ -1,3 +1,4 @@
+import { TrackClick } from "@/components/analytics/TrackClick";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -34,15 +35,21 @@ export function FinalCta() {
         </Magnetic>
         <p className="mt-6 text-sm text-[color:var(--bone-dim)]">
           Prefer chat?{" "}
-          <a
+          <TrackClick
+            event="whatsapp_click"
+            source="final-cta"
             href={whatsappLink(genericInquiryMessage())}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Chat with ${site.name} on WhatsApp at ${site.whatsapp.display}`}
-            className="text-brass underline-offset-4 hover:underline"
           >
-            Message us on WhatsApp
-          </a>{" "}
+            <a
+              href={whatsappLink(genericInquiryMessage())}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Chat with ${site.name} on WhatsApp at ${site.whatsapp.display}`}
+              className="text-brass underline-offset-4 hover:underline"
+            >
+              Message us on WhatsApp
+            </a>
+          </TrackClick>{" "}
           — a person replies within one business day.
         </p>
         <p className="text-label mt-16 text-[color:var(--bone-dim)]">

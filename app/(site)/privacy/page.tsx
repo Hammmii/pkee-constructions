@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
+import { TrackClick } from "@/components/analytics/TrackClick";
 import { LegalPageShell } from "@/components/legal/LegalPageShell";
 import { LegalSection } from "@/components/legal/LegalSection";
 import { SpecRow } from "@/components/ui/SpecRow";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { site, whatsappLink } from "@/lib/site";
+
+const PRIVACY_WHATSAPP_HREF = whatsappLink(
+  "Hi PKEE — I'd like to make a privacy request regarding my data.",
+);
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
@@ -111,14 +116,16 @@ export default function PrivacyPage() {
         <p>
           You may request a copy of the personal information we hold about you, or ask us to correct
           or delete it, at any time. Contact us via{" "}
-          <a
-            href={whatsappLink("Hi PKEE — I'd like to make a privacy request regarding my data.")}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brass underline-offset-4 hover:underline"
-          >
-            WhatsApp
-          </a>{" "}
+          <TrackClick event="whatsapp_click" source="privacy" href={PRIVACY_WHATSAPP_HREF}>
+            <a
+              href={PRIVACY_WHATSAPP_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brass underline-offset-4 hover:underline"
+            >
+              WhatsApp
+            </a>
+          </TrackClick>{" "}
           or by email at{" "}
           <a
             href={`mailto:${site.email}`}

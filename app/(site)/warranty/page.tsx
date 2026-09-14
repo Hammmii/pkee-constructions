@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
+import { TrackClick } from "@/components/analytics/TrackClick";
 import { LegalPageShell } from "@/components/legal/LegalPageShell";
 import { LegalSection } from "@/components/legal/LegalSection";
 import { SpecRow } from "@/components/ui/SpecRow";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { site, whatsappLink } from "@/lib/site";
+
+const WARRANTY_WHATSAPP_HREF = whatsappLink(
+  "Hi PKEE — I'd like to ask about a warranty matter. My reference number is: ",
+);
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
@@ -115,16 +120,16 @@ export default function WarrantyPage() {
           If something doesn&rsquo;t look right, contact us with your reference number — the quote
           or project reference from your original submission — plus photos of the concern. You can
           reach us on{" "}
-          <a
-            href={whatsappLink(
-              "Hi PKEE — I'd like to ask about a warranty matter. My reference number is: ",
-            )}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brass underline-offset-4 hover:underline"
-          >
-            WhatsApp
-          </a>{" "}
+          <TrackClick event="whatsapp_click" source="warranty" href={WARRANTY_WHATSAPP_HREF}>
+            <a
+              href={WARRANTY_WHATSAPP_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brass underline-offset-4 hover:underline"
+            >
+              WhatsApp
+            </a>
+          </TrackClick>{" "}
           or through the contact form. We will review the concern, determine whether it falls under
           workmanship coverage or a manufacturer warranty, and respond with next steps.
         </p>

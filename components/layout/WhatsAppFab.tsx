@@ -7,6 +7,7 @@ import {
   useMounted,
   usePrefersReducedMotion,
 } from "@/components/motion/use-prefers-reduced-motion";
+import { track } from "@/lib/analytics";
 import { site, whatsappLink } from "@/lib/site";
 import { genericInquiryMessage } from "@/lib/whatsapp";
 
@@ -75,6 +76,7 @@ export function WhatsAppFab() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={`Chat with ${site.name} on WhatsApp at ${site.whatsapp.display}`}
+      onClick={() => track("whatsapp_click", { href: HREF, source: "whatsapp-fab" })}
       initial={animate ? { scale: 0.4, opacity: 0 } : false}
       animate={{ scale: 1, opacity: 1 }}
       transition={animate ? { type: "spring", stiffness: 260, damping: 24, delay: 1.2 } : undefined}

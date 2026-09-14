@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { track } from "@/lib/analytics";
 import { quoteCta, site, whatsappLink } from "@/lib/site";
 import { genericInquiryMessage } from "@/lib/whatsapp";
 import { WhatsAppFab } from "./WhatsAppFab";
@@ -45,6 +46,9 @@ export function FloatingActions() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Chat with ${site.name} on WhatsApp at ${site.whatsapp.display}`}
+            onClick={() =>
+              track("whatsapp_click", { href: whatsappHref, source: "floating-actions" })
+            }
             className="flex h-16 items-center justify-center gap-2.5 border-l rule text-[0.8125rem] font-medium uppercase tracking-[0.12em] text-ink transition-colors duration-300 hover:text-brass"
           >
             <svg aria-hidden width="15" height="15" viewBox="0 0 24 24" fill="currentColor">

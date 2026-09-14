@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TrackClick } from "@/components/analytics/TrackClick";
 import { exploreLinks, site, whatsappLink } from "@/lib/site";
 import { genericInquiryMessage } from "@/lib/whatsapp";
 import { StaggerColumn } from "./FooterStagger";
@@ -59,15 +60,21 @@ export function FooterView({ categories, year }: FooterViewProps) {
               >
                 {site.phone.display}
               </a>
-              <a
+              <TrackClick
+                event="whatsapp_click"
+                source="footer"
                 href={whatsappLink(genericInquiryMessage())}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`Chat with ${site.name} on WhatsApp at ${site.whatsapp.display}`}
-                className="block text-[color:var(--bone-on-ink)] transition-colors duration-300 hover:text-brass"
               >
-                Chat on WhatsApp {site.whatsapp.display}
-              </a>
+                <a
+                  href={whatsappLink(genericInquiryMessage())}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Chat with ${site.name} on WhatsApp at ${site.whatsapp.display}`}
+                  className="block text-[color:var(--bone-on-ink)] transition-colors duration-300 hover:text-brass"
+                >
+                  Chat on WhatsApp {site.whatsapp.display}
+                </a>
+              </TrackClick>
               <a
                 href={`mailto:${site.email}`}
                 className="block text-[color:var(--bone-on-ink)] transition-colors duration-300 hover:text-brass"
