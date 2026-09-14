@@ -135,7 +135,6 @@ export function PipelineBoard({ assignees, currentUserId, initialQuotes, statuse
             aria-label={`${status.label} column`}
             className={`pk-col${overColumn === status.value ? " pk-col-over" : ""}`}
             key={status.value}
-            // biome-ignore lint/a11y/noStaticElementInteractions: HTML5 drag-and-drop drop target; keyboard users get the per-card status select.
             onDragOver={(e) => {
               e.preventDefault();
               e.dataTransfer.dropEffect = "move";

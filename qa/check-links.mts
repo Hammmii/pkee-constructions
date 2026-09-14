@@ -69,9 +69,7 @@ const checkedHrefs = new Map<string, { ok: boolean; detail: string }>();
 async function sitemapRoutes(): Promise<string[]> {
   const res = await fetch(`${BASE}/sitemap.xml`);
   const xml = await res.text();
-  return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) =>
-    (m[1] ?? "").replace(BASE, ""),
-  );
+  return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => (m[1] ?? "").replace(BASE, ""));
 }
 
 async function hrefResolves(path: string): Promise<{ ok: boolean; detail: string }> {
@@ -130,8 +128,7 @@ async function main() {
       result.status = response?.status() ?? null;
       await page.waitForTimeout(250);
       result.hasMain = (await page.locator("main").count()) > 0;
-      result.isNotFound =
-        (await page.getByRole("heading", { name: NOT_FOUND_MARKER }).count()) > 0;
+      result.isNotFound = (await page.getByRole("heading", { name: NOT_FOUND_MARKER }).count()) > 0;
       if (result.isNotFound) result.issues.push("renders 404 content");
       if (!result.hasMain) result.issues.push("no <main> element");
       for (const err of consoleErrors) {
@@ -198,7 +195,8 @@ async function main() {
           "| Severity | Route | Kind | Detail |",
           "|---|---|---|---|",
           ...linkIssues.map(
-            (i) => `| ${i.severity} | ${i.route} | ${i.kind} | ${i.detail.replaceAll("|", "\\|")} |`,
+            (i) =>
+              `| ${i.severity} | ${i.route} | ${i.kind} | ${i.detail.replaceAll("|", "\\|")} |`,
           ),
         ]
       : []),

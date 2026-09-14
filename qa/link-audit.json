@@ -27,9 +27,7 @@
       "hasMain": false,
       "isNotFound": false,
       "consoleErrors": [],
-      "issues": [
-        "no <main> element"
-      ]
+      "issues": ["no <main> element"]
     },
     {
       "route": "/consultation",
