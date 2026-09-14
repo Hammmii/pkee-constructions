@@ -21,8 +21,12 @@ export function Track({ event, properties }: TrackProps) {
   if (first.current === null) {
     first.current = { event, properties };
   }
+  // StrictMode dev re-runs the effect on the same instance; fire once.
+  const fired = useRef(false);
 
   useEffect(() => {
+    if (fired.current) return;
+    fired.current = true;
     const { event: e, properties: p } = first.current ?? {};
     if (e) track(e, p);
   }, []);

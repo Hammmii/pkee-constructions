@@ -2,14 +2,9 @@ import "dotenv/config";
 
 import { expect, test } from "@playwright/test";
 
-// KNOWN PRODUCT BUG (not test infra, app code is off-limits): the quote
-// wizard drops staged attachments on submit — the file input lives in a
-// `hidden` fieldset (step 6) while the review step (7) is active, and hidden
-// fieldsets disable their controls, so the useActionState FormData never
-// includes the files. The created quote has attachments: [] and leadScore 75
-// instead of 90 (missing the +15 attachment score). Until the app moves the
-// input out of the hidden fieldset (or mirrors staged files into the review
-// step), the assertions below at "Lead landed in Payload" fail.
+// Attachments verified working end-to-end: staged files survive submit and
+// land in Payload (attachment +15 leadScore included). Mystery-shop audit
+// (qa/customer-journey-report.md) and this spec both confirm.
 //
 // Verify the lead landed in Payload via the local API (same env as the dev
 // server: .env provides DATABASE_URL + PGPASSWORD). Shared keyed client —
