@@ -84,6 +84,8 @@ export const exploreLinks: readonly NavLink[] = navLinks;
 /** Mega-menu footer row — quick paths for buyers who know what they want. */
 export const megaQuickLinks: readonly NavLink[] = [
   { label: "All Products", href: "/products" },
+  { label: "Samples", href: "/samples" },
+  { label: "Consultation", href: "/consultation" },
   { label: "For Trade", href: "/trade" },
   { label: "Download Catalog", href: "/trade" },
 ];
