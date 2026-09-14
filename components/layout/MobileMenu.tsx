@@ -126,6 +126,60 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
                   </motion.div>
                 </li>
               ))}
+              {/* Services group — sample + booking paths researchers hunt for. */}
+              <li className="border-b rule-on-dark">
+                <motion.div
+                  initial={animate ? { opacity: 0, y: 32 } : false}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.7,
+                    ease: EXPO,
+                    delay: 0.06 + (navLinks.length + 1) * 0.055,
+                  }}
+                  className="py-5"
+                >
+                  <p className="text-label text-brass">Services</p>
+                  <div className="mt-4 flex flex-col gap-4">
+                    {[
+                      { label: "Samples", href: "/samples" },
+                      { label: "Consultation", href: "/consultation" },
+                    ].map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={onClose}
+                        className="text-2xl font-medium uppercase leading-[1.05] tracking-[-0.02em] transition-colors duration-300 hover:text-brass"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                </motion.div>
+              </li>
+              <li className="border-b rule-on-dark">
+                <motion.div
+                  initial={animate ? { opacity: 0, y: 32 } : false}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.7,
+                    ease: EXPO,
+                    delay: 0.06 + (navLinks.length + 2) * 0.055,
+                  }}
+                >
+                  <Link
+                    href="/trade"
+                    onClick={onClose}
+                    className="group flex items-baseline gap-5 py-5"
+                  >
+                    <span aria-hidden className="text-label text-brass">
+                      {String(navLinks.length + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-[clamp(2rem,8vw,3.5rem)] font-medium uppercase leading-[1.05] tracking-[-0.02em] transition-colors duration-300 group-hover:text-brass">
+                      For Trade
+                    </span>
+                  </Link>
+                </motion.div>
+              </li>
             </ul>
           </nav>
 
