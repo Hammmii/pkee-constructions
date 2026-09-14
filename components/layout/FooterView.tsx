@@ -10,6 +10,7 @@ export type FooterCategory = {
 };
 
 const LEGAL_LINKS: Array<{ label: string; href: string }> = [
+  { label: "FAQ", href: "/faq" },
   { label: "Privacy", href: "/privacy" },
   { label: "Terms", href: "/terms" },
   { label: "Warranty", href: "/warranty" },
