@@ -39,7 +39,14 @@ export const Quotes: CollectionConfig = {
   slug: "quotes",
   admin: {
     useAsTitle: "reference",
-    defaultColumns: ["reference", "status", "leadScore", "updatedAt"],
+    defaultColumns: [
+      "reference",
+      "customer.name",
+      "customer.email",
+      "status",
+      "leadScore",
+      "updatedAt",
+    ],
   },
   hooks: {
     beforeChange: [generateReference],

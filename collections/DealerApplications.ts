@@ -24,7 +24,14 @@ export const DealerApplications: CollectionConfig = {
   },
   admin: {
     useAsTitle: "companyName",
-    defaultColumns: ["companyName", "businessType", "territory", "status", "updatedAt"],
+    defaultColumns: [
+      "reference",
+      "companyName",
+      "businessType",
+      "territory",
+      "status",
+      "updatedAt",
+    ],
   },
   access: {
     admin: isSalesStaff,

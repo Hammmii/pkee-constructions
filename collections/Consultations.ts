@@ -5,7 +5,7 @@ import { isSalesStaff, publicCreateClosed, staffDeleteAccess } from "./access";
 export const Consultations: CollectionConfig = {
   slug: "consultations",
   admin: {
-    defaultColumns: ["type", "date", "contact.name", "status", "updatedAt"],
+    defaultColumns: ["type", "date", "contact.name", "source", "status", "updatedAt"],
   },
   access: {
     admin: isSalesStaff,
