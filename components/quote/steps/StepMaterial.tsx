@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useFormContext } from "react-hook-form";
 import { SelectField } from "@/components/ui/field/SelectField";
 import { TextField } from "@/components/ui/field/TextField";
@@ -58,7 +59,7 @@ export function StepMaterial({ products, categories }: StepMaterialProps) {
       </SelectField>
       <SelectField
         id="material.productSlug"
-        label="Product"
+        label="Product (optional)"
         error={errors.material?.productSlug?.message}
         {...register("material.productSlug")}
       >
@@ -73,6 +74,16 @@ export function StepMaterial({ products, categories }: StepMaterialProps) {
           </optgroup>
         ))}
       </SelectField>
+      {products.length === 0 && (
+        <p className="sm:col-span-2 -mt-4 text-sm text-ink/55">
+          No product selected — optional. Tell us what you&rsquo;re planning in the notes, or pick
+          from our{" "}
+          <Link href="/products" className="text-brass underline-offset-4 hover:underline">
+            catalog
+          </Link>
+          .
+        </p>
+      )}
       <TextField
         id="material.finish"
         label="Finish"
