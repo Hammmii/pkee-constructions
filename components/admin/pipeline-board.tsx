@@ -32,7 +32,13 @@ async function patchQuote(id: string, body: PatchBody) {
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `Request failed with ${res.status}`);
+    try {
+      const parsed = JSON.parse(text) as { error?: string };
+      throw new Error(parsed.error ?? `Request failed with ${res.status}`);
+    } catch (err) {
+      if (err instanceof SyntaxError) throw new Error(text || `Request failed with ${res.status}`);
+      throw err;
+    }
   }
   return res.json();
 }

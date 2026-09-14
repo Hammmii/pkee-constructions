@@ -13,6 +13,21 @@ const patchSchema = z.object({
   status: z.string().min(1).optional(),
 });
 
+/**
+ * Relationship IDs in Postgres are numeric, but clients may send string IDs
+ * (the admin UI select values are strings). Coerce before payload.update —
+ * the local API does not stringify-coerce relationship values the way the
+ * REST adapter does, and a raw string fails relationship validation.
+ */
+function coerceRelationshipId(value: string | number | null) {
+  if (value === null) return null;
+  if (typeof value === "number") return value;
+  const trimmed = value.trim();
+  if (trimmed === "") return null;
+  const num = Number(trimmed);
+  return Number.isFinite(num) ? num : null;
+}
+
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
@@ -27,7 +42,17 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = patchSchema.safeParse(await request.json().catch(() => ({})));
+  const rawBody: unknown = await request.json().catch(() => ({}));
+  // Accept both flat `{ assignedTo }` and Payload-style `{ data: { ... } }` bodies.
+  const candidate =
+    typeof rawBody === "object" &&
+    rawBody !== null &&
+    "data" in rawBody &&
+    typeof (rawBody as { data?: unknown }).data === "object" &&
+    (rawBody as { data?: unknown }).data !== null
+      ? (rawBody as { data: unknown }).data
+      : rawBody;
+  const body = patchSchema.safeParse(candidate);
   if (!body.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: body.error.issues },
@@ -51,7 +76,32 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
   const data: Record<string, unknown> = {};
   if (typeof status === "string") data.status = status;
-  if (assignedTo !== undefined) data.assignedTo = assignedTo;
+  if (assignedTo !== undefined) {
+    const coerced = coerceRelationshipId(assignedTo);
+    if (coerced === null && assignedTo !== null) {
+      return NextResponse.json(
+        { error: "Invalid assignee ID — must be a numeric user ID or null" },
+        { status: 400 },
+      );
+    }
+    if (coerced !== null) {
+      const assignee = await payload
+        .findByID({
+          collection: "users",
+          id: coerced,
+          depth: 0,
+          overrideAccess: true,
+        })
+        .catch(() => null);
+      if (!assignee) {
+        return NextResponse.json(
+          { error: `Assignee user ${coerced} does not exist` },
+          { status: 400 },
+        );
+      }
+    }
+    data.assignedTo = coerced;
+  }
 
   const notes = Array.isArray(quote.notes)
     ? quote.notes.map((n) => ({
@@ -69,13 +119,23 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
   if (notes.length > 0) data.notes = notes;
 
-  const updated = await payload.update({
-    collection: "quotes",
-    id,
-    data,
-    depth: 0,
-    overrideAccess: true,
-  });
+  let updated: Awaited<ReturnType<typeof payload.update>>;
+  try {
+    updated = await payload.update({
+      collection: "quotes",
+      id,
+      data,
+      depth: 0,
+      overrideAccess: true,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Update failed";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 
-  return NextResponse.json({ id: updated.id, status: updated.status });
+  return NextResponse.json({
+    id: updated.id,
+    status: (updated as { status?: string }).status ?? null,
+    assignedTo: (updated as { assignedTo?: unknown }).assignedTo ?? null,
+  });
 }
