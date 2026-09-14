@@ -97,7 +97,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
           animate={{ opacity: 1 }}
           exit={animate ? { opacity: 0 } : undefined}
           transition={{ duration: 0.35, ease: EXPO }}
-          className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-ink text-bone lg:hidden"
+          className="fixed inset-0 z-[45] flex flex-col overflow-y-auto bg-ink text-bone lg:hidden"
         >
           {/* Clear the fixed header. */}
           <div className="h-[var(--header-h)]" aria-hidden />

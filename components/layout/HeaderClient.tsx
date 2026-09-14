@@ -234,11 +234,9 @@ export function HeaderClient({ categories }: HeaderClientProps) {
             </Button>
           </nav>
 
-          {/* Mobile: quote shortcut + hamburger */}
+          {/* Mobile: hamburger only — the fixed conversion bar (FloatingActions)
+              carries the quote CTA so the two never stack. */}
           <div className="flex items-center gap-3 lg:hidden">
-            <Button href={quoteCta.href} className="h-11 px-5">
-              {quoteCta.label}
-            </Button>
             <button
               type="button"
               aria-expanded={menuOpen}
