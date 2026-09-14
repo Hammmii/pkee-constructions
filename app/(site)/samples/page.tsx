@@ -81,6 +81,41 @@ export default async function SamplesPage({ searchParams }: PageProps<"/samples"
           </p>
         )}
 
+        {/* How samples work — TODO-CLIENT: confirm sample pricing and delivery
+            cost before launch; copy below phrases both neutrally as placeholders. */}
+        <div className="mt-12 border border-stone">
+          <p className="border-b rule px-6 py-4 text-label text-ink/55">How samples work</p>
+          <ul className="grid gap-x-8 gap-y-4 px-6 py-6 text-sm text-foreground/70 sm:grid-cols-3">
+            <li>
+              <span className="block text-[0.8125rem] font-medium uppercase tracking-[0.12em] text-ink">
+                Up to 5 per request
+              </span>
+              <span className="mt-2 block">
+                We keep sample stock in small batches so more customers can compare — that is why
+                each request is capped at 5.
+              </span>
+            </li>
+            <li>
+              <span className="block text-[0.8125rem] font-medium uppercase tracking-[0.12em] text-ink">
+                Pickup or delivery
+              </span>
+              <span className="mt-2 block">
+                Pick up at the showroom, {site.address.street}, {site.address.city}. Delivery is
+                available — we will confirm the cost when we review your request.
+              </span>
+            </li>
+            <li>
+              <span className="block text-[0.8125rem] font-medium uppercase tracking-[0.12em] text-ink">
+                Sample pricing
+              </span>
+              <span className="mt-2 block">
+                We will confirm any sample charges when we confirm your request — most customers
+                pick up free of charge.
+              </span>
+            </li>
+          </ul>
+        </div>
+
         <div className="mt-12">
           <SamplesForm
             products={products}
