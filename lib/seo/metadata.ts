@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 
 /**
+ * Brand fallback OG/Twitter image, served from `public/og/brand.png`.
+ * Every page shares a link; pages with real media (products, projects, home)
+ * override it via the `image` argument. Keep the file in sync with this path.
+ */
+export const DEFAULT_OG_IMAGE = "/og/brand.png";
+
+/**
  * Absolute site URL. `NEXT_PUBLIC_SITE_URL` in production; falls back to the
  * public origin so sitemaps/canonicals are never emitted with a dev host.
  * Never invent a public origin.
@@ -41,7 +48,7 @@ export function buildMetadata({
   index = true,
 }: BuildMetadataInput): Metadata {
   const url = absoluteUrl(path);
-  const imageUrl = image ? absoluteUrl(image) : undefined;
+  const imageUrl = image ? absoluteUrl(image) : absoluteUrl(DEFAULT_OG_IMAGE);
 
   return {
     title,
@@ -55,13 +62,13 @@ export function buildMetadata({
       siteName: "PKEE Constructions",
       type: "website",
       locale: "en_CA",
-      ...(imageUrl ? { images: [{ url: imageUrl }] } : {}),
+      images: [{ url: imageUrl }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      ...(imageUrl ? { images: [imageUrl] } : {}),
+      images: [imageUrl],
     },
   };
 }

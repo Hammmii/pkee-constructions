@@ -3,15 +3,17 @@ import Link from "next/link";
 import { TrackClick } from "@/components/analytics/TrackClick";
 import { TradeApplication } from "@/components/trade/TradeApplication";
 import { SpecRow } from "@/components/ui/SpecRow";
+import { buildMetadata } from "@/lib/seo/metadata";
 import { site, whatsappLink } from "@/lib/site";
 import { tradeInquiryMessage } from "@/lib/whatsapp";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return {
+  return buildMetadata({
     title: "Become a Dealer",
     description:
       "Apply to carry PKEE Constructions decorative building materials — trade pricing, priority stock, and territory support for retailers, contractors, and designers.",
-  };
+    path: "/trade",
+  });
 }
 
 const PROGRAM_BENEFITS: Array<[string, string]> = [

@@ -6,14 +6,16 @@ import { MapEmbed } from "@/components/contact/MapEmbed";
 import { WhatsAppHandoff } from "@/components/lead/WhatsAppHandoff";
 import { SpecRow } from "@/components/ui/SpecRow";
 import { directionsUrl, mailtoHref, phoneHref } from "@/lib/contact";
+import { buildMetadata } from "@/lib/seo/metadata";
 import { site, whatsappLink } from "@/lib/site";
 import { genericInquiryMessage } from "@/lib/whatsapp";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Contact",
   description:
     "Contact PKEE Constructions — visit the showroom at 360 Keewatin St, Winnipeg, MB, call, email, or send a message. Consultations, quotes, and trade enquiries.",
-};
+  path: "/contact",
+});
 
 const actionBase =
   "inline-flex h-14 select-none items-center justify-center rounded-[2px] px-8 " +

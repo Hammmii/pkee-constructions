@@ -4,15 +4,17 @@ import { TrackClick } from "@/components/analytics/TrackClick";
 import { QuoteWizard } from "@/components/quote/QuoteWizard";
 import type { CategoryOption, PreselectedProduct, ProductOption } from "@/components/quote/types";
 import { getPayloadCached } from "@/lib/payload";
+import { buildMetadata } from "@/lib/seo/metadata";
 import { site, whatsappLink } from "@/lib/site";
 import { quoteStartMessage } from "@/lib/whatsapp";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return {
+  return buildMetadata({
     title: "Request a Quote",
     description:
       "Tell us about your project — material, dimensions, timeline — and a PKEE specialist will respond within 2 business days.",
-  };
+    path: "/quote",
+  });
 }
 
 /**

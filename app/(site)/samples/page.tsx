@@ -3,15 +3,17 @@ import { TrackClick } from "@/components/analytics/TrackClick";
 import { SamplesForm } from "@/components/samples/SamplesForm";
 import type { SampleProductOption } from "@/components/samples/types";
 import { getPayloadCached } from "@/lib/payload";
+import { buildMetadata } from "@/lib/seo/metadata";
 import { site, whatsappLink } from "@/lib/site";
 import { samplesRequestMessage } from "@/lib/whatsapp";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return {
+  return buildMetadata({
     title: "Order Samples",
     description:
       "Feel the material before you commit — order free PKEE samples of any product, in the colour and finish you are considering.",
-  };
+    path: "/samples",
+  });
 }
 
 /**

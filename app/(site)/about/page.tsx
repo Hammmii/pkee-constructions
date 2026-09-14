@@ -8,13 +8,15 @@ import { Timeline, type TimelineEntry } from "@/components/about/Timeline";
 import { type ValueItem, ValuesGrid } from "@/components/about/ValuesGrid";
 import { FinalCta } from "@/components/marketing/FinalCta";
 import { getPayloadCached } from "@/lib/payload";
+import { buildMetadata } from "@/lib/seo/metadata";
 import type { Media, Page } from "@/payload-types";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "About",
   description:
     "PKEE Constructions — premium decorative building materials supplier, fabricator, and installer in Winnipeg, MB. Our story, our people, and the showroom at 360 Keewatin St.",
-};
+  path: "/about",
+});
 
 // ---------------------------------------------------------------------------
 // Placeholder editorial content (TODO-CLIENT): principals, milestones, and

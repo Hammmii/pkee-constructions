@@ -11,16 +11,18 @@ import { ImageReveal } from "@/components/motion/ImageReveal";
 import { ProjectBeforeAfter } from "@/components/projects/ProjectBeforeAfter";
 import { FALLBACK_BASE_MATERIALS } from "@/lib/customStudio";
 import { getPayloadCached } from "@/lib/payload";
+import { buildMetadata } from "@/lib/seo/metadata";
 import { site, whatsappLink } from "@/lib/site";
 import { customStudioInquiryMessage } from "@/lib/whatsapp";
 import type { Media, Product, ProductCategory, Project } from "@/payload-types";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return {
+  return buildMetadata({
     title: "Custom Studio",
     description:
       "Upload your design and PKEE Constructions fabricates it — feature walls, custom doors and cabinets, mandir and darbar, 3D parametric relief, custom stone, and backlit panels. Designed and installed in Winnipeg, MB.",
-  };
+    path: "/custom-studio",
+  });
 }
 
 /** Static capability copy; imagery resolved from ProductCategories below. */

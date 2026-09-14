@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import { ConsultationForm } from "@/components/consultation/ConsultationForm";
 import { CONSULTATION_HOURS_DISPLAY, CONSULTATION_TYPE_LABELS } from "@/lib/consultation";
+import { buildMetadata } from "@/lib/seo/metadata";
 import { CONSULTATION_TYPES } from "@/lib/validators/consultation";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return {
+  return buildMetadata({
     title: "Book a Consultation",
     description:
       "Book a phone, video, showroom, or site-visit consultation with a PKEE materials specialist — we confirm every booking within 1 business day.",
-  };
+    path: "/consultation",
+  });
 }
 
 function todayLocal(): string {

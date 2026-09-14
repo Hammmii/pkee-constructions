@@ -53,10 +53,12 @@ describe("buildMetadata", () => {
     ]);
   });
 
-  it("omits the image keys when no image is given", () => {
+  it("falls back to the brand OG image when no image is given", () => {
     const meta = buildMetadata({ title: "Panel", description: "d", path: "/x" });
-    expect(meta.openGraph?.images).toBeUndefined();
-    expect(meta.twitter?.images).toBeUndefined();
+    expect(meta.openGraph?.images).toEqual([
+      { url: "https://www.pkeeconstructions.ca/og/brand.png" },
+    ]);
+    expect(meta.twitter?.images).toEqual(["https://www.pkeeconstructions.ca/og/brand.png"]);
   });
 
   it("marks filtered pages noindex but follow", () => {
